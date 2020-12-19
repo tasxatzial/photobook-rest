@@ -66,6 +66,16 @@ public class test {
             }
         });
 
+        delete("/users", (request, response) -> {
+            response.type("application/json");
+            response.status(405);
+
+            return new Gson()
+                    .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                            "DELETE not supported in container URIs",
+                            new Gson().toJsonTree("")));
+        });
+
         get("/users/:username", (request, response) -> {
             response.type("application/json");
 
@@ -163,6 +173,15 @@ public class test {
                             "DELETE not supported",
                             new Gson().toJsonTree("")));
         });
-        
+
+        post("/users/:username", (request, response) -> {
+            response.type("application/json");
+            response.status(405);
+
+            return new Gson()
+                    .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                            "POST not supported in non container URIs",
+                            new Gson().toJsonTree("")));
+        });
     }
 }
