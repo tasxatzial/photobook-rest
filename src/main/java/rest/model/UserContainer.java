@@ -32,7 +32,7 @@ public class UserContainer {
         for (int i = 0; i < userPropNames.length; i++) {
             JsonElement requestProp = requestJson.get(userPropNames[i]);
             if (requestProp == null) {
-                invalidRequestProps.addProperty(userPropNames[i], "[Missing value]");
+                invalidRequestProps.addProperty(userPropNames[i], "Missing value");
                 continue;
             }
             String parsedRequestProp = parseRequestProp(requestProp);
@@ -41,15 +41,15 @@ public class UserContainer {
                     if (userUpdate) {
                         String requestUsername = parseRequestProp(requestJson.get("username")).trim().toLowerCase();
                         if (!requestUsername.equals(paramsUsername)) {
-                            invalidRequestProps.addProperty("username", parsedRequestProp + " [Username modification not permitted]");
+                            invalidRequestProps.addProperty("username", "Username modification not permitted");
                             return invalidRequestProps;
                         }
                     } else {
                         parsedRequestProp = parsedRequestProp.trim().toLowerCase();
                         if (usernameExists(parsedRequestProp)) {
-                            invalidRequestProps.addProperty("username", parsedRequestProp + " [Already taken]");
+                            invalidRequestProps.addProperty("username", "Already taken");
                         } else if (!parsedRequestProp.matches(getRegexPattern("username"))) {
-                            invalidRequestProps.addProperty("username", parsedRequestProp + " [Invalid pattern]");
+                            invalidRequestProps.addProperty("username", "Invalid pattern");
                         }
                     }
                     break;
@@ -67,9 +67,9 @@ public class UserContainer {
                     }
                     if (!skipEmailCheck) {
                         if (emailExists(parsedRequestProp)) {
-                            invalidRequestProps.addProperty("email", parsedRequestProp + " [Already taken]");
+                            invalidRequestProps.addProperty("email", "Already taken");
                         } else if (!parsedRequestProp.matches(getRegexPattern("email"))) {
-                            invalidRequestProps.addProperty("email", parsedRequestProp + " [Invalid pattern]");
+                            invalidRequestProps.addProperty("email", "Invalid pattern");
                         }
                     }
                     break;
@@ -80,41 +80,41 @@ public class UserContainer {
                     }
                     String parsedPassword = parseRequestProp(password);
                     if (parsedPassword.matches(getRegexPattern("password")) && !parsedPassword.equals(parsedRequestProp)) {
-                        invalidRequestProps.addProperty("passwordConfirm", parsedRequestProp + " [Mismatch]");
+                        invalidRequestProps.addProperty("passwordConfirm","Mismatch");
                     }
                     break;
                 case "birthDate":
                     if (!isValidDate(parsedRequestProp)) {
-                        invalidRequestProps.addProperty("birthDate", parsedRequestProp + " [Invalid pattern]");
+                        invalidRequestProps.addProperty("birthDate", "Invalid pattern");
                     }
                     break;
                 case "interests":
                     parsedRequestProp = parsedRequestProp.trim();
-                    if (!parsedRequestProp.matches(getRegexPattern("interests")) && parsedRequestProp.length() > 100) {
-                        invalidRequestProps.addProperty("interests", parsedRequestProp + " [Invalid pattern]");
+                    if (!parsedRequestProp.matches(getRegexPattern("interests")) || parsedRequestProp.length() > 100) {
+                        invalidRequestProps.addProperty("interests", "Invalid pattern");
                     }
                     break;
                 case "about":
                     parsedRequestProp = parsedRequestProp.trim();
-                    if (!parsedRequestProp.matches(getRegexPattern("about")) && parsedRequestProp.length() > 500) {
-                        invalidRequestProps.addProperty("about", parsedRequestProp + " [Invalid pattern]");
+                    if (!parsedRequestProp.matches(getRegexPattern("about")) || parsedRequestProp.length() > 500) {
+                        invalidRequestProps.addProperty("about", "Invalid pattern");
                     }
                     break;
                 case "gender":
                     parsedRequestProp = parsedRequestProp.trim();
                     if (!parsedRequestProp.matches(getRegexPattern("gender"))) {
-                        invalidRequestProps.addProperty(userPropNames[i], parsedRequestProp + " [Invalid pattern]");
+                        invalidRequestProps.addProperty(userPropNames[i], "Invalid pattern");
                     }
                     break;
                 case "country":
                     parsedRequestProp = parsedRequestProp.trim().toUpperCase();
                     if (!Countries.containsCountry(parsedRequestProp)) {
-                        invalidRequestProps.addProperty(userPropNames[i], parsedRequestProp + " [Invalid code]");
+                        invalidRequestProps.addProperty(userPropNames[i], "Invalid code name");
                     }
                     break;
                 default:
                     if (!parsedRequestProp.matches(getRegexPattern(userPropNames[i]))) {
-                        invalidRequestProps.addProperty(userPropNames[i], parsedRequestProp + " [Invalid pattern]");
+                        invalidRequestProps.addProperty(userPropNames[i], "Invalid pattern");
                     }
                     break;
             }
