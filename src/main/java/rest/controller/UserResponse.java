@@ -5,13 +5,11 @@ import com.google.gson.JsonElement;
 public class UserResponse {
     private ResponseEnum status;
     private String message;
-    private int code;
     private JsonElement data;
 
-    public UserResponse(ResponseEnum status, String message, int code, JsonElement data) {
+    public UserResponse(ResponseEnum status, String message, JsonElement data) {
         this.status = status;
         this.message = message;
-        this.code = code;
         this.data = data;
     }
 
@@ -37,14 +35,6 @@ public class UserResponse {
 
     public void setData(JsonElement data) {
         this.data = data;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
     }
 
     public enum ResponseEnum {

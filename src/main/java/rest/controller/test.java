@@ -26,7 +26,6 @@ public class test {
             return new Gson()
                     .toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.SUCCESS,
                             "",
-                            200,
                             "",
                             new Gson().toJsonTree(userContainer.getUsers())));
         });
@@ -42,7 +41,6 @@ public class test {
                 return new Gson()
                         .toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.ERROR,
                                 "Malformed request",
-                                400,
                                 "",
                                 new Gson().toJsonTree("")));
             }
@@ -56,7 +54,6 @@ public class test {
                 return new Gson().
                         toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.SUCCESS,
                                 "",
-                                201,
                                 userContainer.getResource(user),
                                 new Gson().toJsonTree(user)));
             } else {
@@ -64,7 +61,6 @@ public class test {
                 return new Gson()
                         .toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.ERROR,
                                 "Wrong user parameters",
-                                400,
                                 "",
                                 new Gson().toJsonTree(invalidRequestProps)));
             }
@@ -81,7 +77,6 @@ public class test {
                 return new Gson()
                         .toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.ERROR,
                                 "Malformed request",
-                                400,
                                 "",
                                 new Gson().toJsonTree("")));
             }
@@ -95,14 +90,12 @@ public class test {
                 return new Gson()
                         .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
                                 "Username not found",
-                                404,
                                 new Gson().toJsonTree(data)));
             } else {
                 response.status(200);
                 return new Gson()
                         .toJson(new UserResponse(UserResponse.ResponseEnum.SUCCESS,
                                 "",
-                                200,
                                 new Gson().toJsonTree(user)));
             }
         });
@@ -118,7 +111,6 @@ public class test {
                 return new Gson()
                         .toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.ERROR,
                                 "Malformed request",
-                                400,
                                 "",
                                 new Gson().toJsonTree("")));
             }
@@ -131,7 +123,6 @@ public class test {
                 return new Gson()
                         .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
                                 "Username not found",
-                                404,
                                 new Gson().toJsonTree(data)));
             } else {
                 JsonObject invalidRequestProps = userContainer.checkUserFields(jsonRequest, username, true);
@@ -142,14 +133,12 @@ public class test {
                     return new Gson().
                             toJson(new UserResponse(UserResponse.ResponseEnum.SUCCESS,
                                     "",
-                                    200,
                                     new Gson().toJsonTree(user)));
                 } else {
                     response.status(400);
                     return new Gson()
                             .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
                                     "Wrong user parameters",
-                                    400,
                                     new Gson().toJsonTree(invalidRequestProps)));
                 }
             }
@@ -162,10 +151,8 @@ public class test {
             return new Gson()
                     .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
                             "POST not supported in non container URIs",
-                            405,
                             new Gson().toJsonTree("")));
         });
 
     }
-
 }
