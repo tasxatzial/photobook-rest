@@ -1,5 +1,10 @@
 package rest.controller;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import rest.model.User;
 import rest.model.UserContainer;
 
 import static spark.Spark.delete;
@@ -16,6 +21,51 @@ public class test {
 
         port(5677);
 
+        get("/users", (request, response) -> {
+            response.status(200);
+            return new Gson()
+                    .toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.SUCCESS,
+                            "Users",
+                            new Gson().toJsonTree(userContainer)));
+        });
+
+        post("/users", (request, response) -> {
+            response.type("application/json");
+            JsonObject jsonRequest = null;
+
+            try {
+                jsonRequest = JsonParser.parseString(request.body()).getAsJsonObject();
+            } catch (JsonSyntaxException e) {
+                response.status(400);
+                return new Gson()
+                        .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                                "Malformed request",
+                                "",
+                                400,
+                                new Gson().toJsonTree("")));
+            }
+
+            JsonObject jsonInvalidFields = userContainer.checkUserFields(jsonRequest);
+            if (jsonInvalidFields.size() == 0) {
+                response.status(201);
+                User user = new Gson().fromJson(request.body(), User.class);
+                userContainer.addUser(user);
+                return new Gson().
+                        toJson(new UserResponse(UserResponse.ResponseEnum.SUCCESS,
+                        "",
+                                userContainer.getResource(user),
+                                201,
+                                new Gson().toJsonTree(user)));
+            } else {
+                response.status(400);
+                return new Gson()
+                        .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                                "Wrong user parameters",
+                                "",
+                                400,
+                                new Gson().toJsonTree(jsonInvalidFields)));
+            }
+        });
 
     }
 

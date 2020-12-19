@@ -3,14 +3,17 @@ package rest.controller;
 import com.google.gson.JsonElement;
 
 public class UserResponse {
-
     private ResponseEnum status;
     private String message;
+    private String resource;
+    private int code;
     private JsonElement data;
 
-    public UserResponse(ResponseEnum status, String message, JsonElement data) {
+    public UserResponse(ResponseEnum status, String message, String resource, int code, JsonElement data) {
         this.status = status;
         this.message = message;
+        this.resource = resource;
+        this.code = code;
         this.data = data;
     }
 
@@ -36,6 +39,22 @@ public class UserResponse {
 
     public void setData(JsonElement data) {
         this.data = data;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public void setCode(int code) {
+        this.code = code;
+    }
+
+    public String getResource() {
+        return resource;
+    }
+
+    public void setResource(String resource) {
+        this.resource = resource;
     }
 
     public enum ResponseEnum {
