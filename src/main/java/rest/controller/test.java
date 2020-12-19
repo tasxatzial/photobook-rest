@@ -18,30 +18,32 @@ public class test {
     private static final UserContainer userContainer = new UserContainer();
 
     public static void main(String[] args) {
-
         port(5677);
 
         get("/users", (request, response) -> {
+            response.type("application/json");
             response.status(200);
             return new Gson()
                     .toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.SUCCESS,
+                            "",
+                            200,
                             "",
                             new Gson().toJsonTree(userContainer.getUsers())));
         });
 
         post("/users", (request, response) -> {
             response.type("application/json");
-            JsonObject jsonRequest = null;
 
+            JsonObject jsonRequest = null;
             try {
                 jsonRequest = JsonParser.parseString(request.body()).getAsJsonObject();
             } catch (JsonSyntaxException e) {
                 response.status(400);
                 return new Gson()
-                        .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                        .toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.ERROR,
                                 "Malformed request",
-                                "",
                                 400,
+                                "",
                                 new Gson().toJsonTree("")));
             }
 
@@ -52,22 +54,55 @@ public class test {
                 response.header("Location", "http://127.0.0.1:5677/users/" + user.getUsername());
                 userContainer.addUser(user);
                 return new Gson().
-                        toJson(new UserResponse(UserResponse.ResponseEnum.SUCCESS,
-                        "",
-                                userContainer.getResource(user),
+                        toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.SUCCESS,
+                                "",
                                 201,
+                                "users/" + user.getUsername(),
                                 new Gson().toJsonTree(user)));
             } else {
                 response.status(400);
                 return new Gson()
-                        .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                        .toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.ERROR,
                                 "Wrong user parameters",
-                                "",
                                 400,
+                                "",
                                 new Gson().toJsonTree(jsonInvalidFields)));
             }
         });
 
+        get("/users/:username", (request, response) -> {
+            response.type("application/json");
+
+            JsonObject jsonRequest = null;
+            try {
+                jsonRequest = JsonParser.parseString(request.body()).getAsJsonObject();
+            } catch (JsonSyntaxException e) {
+                response.status(400);
+                return new Gson()
+                        .toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.ERROR,
+                                "Malformed request",
+                                400,
+                                "",
+                                new Gson().toJsonTree("")));
+            }
+
+            User user = userContainer.getUser(request.params(":username"));
+            if (user == null) {
+                response.status(404);
+                return new Gson()
+                        .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                                "Invalid username",
+                                404,
+                                new Gson().toJsonTree("")));
+            } else {
+                response.status(200);
+                return new Gson()
+                        .toJson(new UserResponse(UserResponse.ResponseEnum.SUCCESS,
+                                "",
+                                200,
+                                new Gson().toJsonTree(user)));
+            }
+        });
     }
 
 }

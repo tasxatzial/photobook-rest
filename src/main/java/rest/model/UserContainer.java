@@ -65,8 +65,7 @@ public class UserContainer {
                         break;
                     }
                     String parsedPassword = parseJsonElement(password);
-                    if (parsedPassword.matches(getRegexPattern("password")) &&
-                            !parsedPassword.equals(parsedField)) {
+                    if (parsedPassword.matches(getRegexPattern("password")) &&  !parsedPassword.equals(parsedField)) {
                         jsonInvalidFields.addProperty("passwordConfirm", parsedField + " [Mismatch]");
                     }
                     break;
@@ -76,11 +75,13 @@ public class UserContainer {
                     }
                     break;
                 case "interests":
+                    parsedField = parsedField.trim();
                     if (!parsedField.matches(getRegexPattern("interests")) && parsedField.length() > 100) {
                         jsonInvalidFields.addProperty("interests", parsedField + " [Invalid pattern]");
                     }
                     break;
                 case "about":
+                    parsedField = parsedField.trim();
                     if (!parsedField.matches(getRegexPattern("about")) && parsedField.length() > 500) {
                         jsonInvalidFields.addProperty("about", parsedField + " [Invalid pattern]");
                     }
@@ -132,7 +133,7 @@ public class UserContainer {
             JsonObject user = new JsonObject();
             user.addProperty("username", username);
             user.add("links", links);
-            
+
             data.add(user);
         }
 
@@ -145,6 +146,10 @@ public class UserContainer {
 
     public boolean emailExists(String email) {
         return emails.contains(email);
+    }
+
+    public User getUser(String username) {
+        return users.get(username);
     }
 
     /**
