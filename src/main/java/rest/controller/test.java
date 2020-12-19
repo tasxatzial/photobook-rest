@@ -76,6 +76,16 @@ public class test {
                             new Gson().toJsonTree("")));
         });
 
+        put("/users", (request, response) -> {
+            response.type("application/json");
+            response.status(405);
+
+            return new Gson()
+                    .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                            "PUT not supported in container URIs",
+                            new Gson().toJsonTree("")));
+        });
+        
         get("/users/:username", (request, response) -> {
             response.type("application/json");
 
