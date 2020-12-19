@@ -3,7 +3,6 @@ package rest.controller;
 import com.google.gson.JsonElement;
 
 public class UserContainerResponse {
-
     private ResponseEnum status;
     private String message;
     private JsonElement data;

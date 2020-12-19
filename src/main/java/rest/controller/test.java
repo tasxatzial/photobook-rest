@@ -25,8 +25,8 @@ public class test {
             response.status(200);
             return new Gson()
                     .toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.SUCCESS,
-                            "Users",
-                            new Gson().toJsonTree(userContainer)));
+                            "",
+                            new Gson().toJsonTree(userContainer.getUsers())));
         });
 
         post("/users", (request, response) -> {
@@ -49,6 +49,7 @@ public class test {
             if (jsonInvalidFields.size() == 0) {
                 response.status(201);
                 User user = new Gson().fromJson(request.body(), User.class);
+                response.header("Location", "http://127.0.0.1:5677/users/" + user.getUsername());
                 userContainer.addUser(user);
                 return new Gson().
                         toJson(new UserResponse(UserResponse.ResponseEnum.SUCCESS,

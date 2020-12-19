@@ -1,5 +1,6 @@
 package rest.model;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -11,10 +12,10 @@ import java.util.*;
 public class UserContainer {
     Map<String, User> users = new HashMap<>();
     Set<String> emails = new HashSet<>();
-    String[] fields;
+    String[] userFieldNames;
 
     public UserContainer() {
-        fields = new String[] {
+        userFieldNames = new String[] {
                 "username", "password", "passwordConfirm", "email",
                 "firstName", "lastName", "birthDate", "country", "city",
                 "address", "job", "gender", "interests", "about" };
@@ -34,17 +35,16 @@ public class UserContainer {
         }
         JsonObject jsonInvalidFields = new JsonObject();
 
-        for (int i = 0; i < fields.length; i++) {
-            JsonElement field = requestJson.get(fields[i]);
+        for (int i = 0; i < userFieldNames.length; i++) {
+            JsonElement field = requestJson.get(userFieldNames[i]);
             if (field == null) {
-                jsonInvalidFields.addProperty(fields[i], "[Missing value]");
+                jsonInvalidFields.addProperty(userFieldNames[i], "[Missing value]");
                 continue;
             }
             String parsedField = parseJsonElement(field);
-            switch (fields[i]) {
+            switch (userFieldNames[i]) {
                 case "username":
                     parsedField = parsedField.trim().toLowerCase();
-                    System.out.println(parsedField);
                     if (usernameExists(parsedField)) {
                         jsonInvalidFields.addProperty("username", parsedField + " [Already taken]");
                     } else if (!parsedField.matches(getRegexPattern("username"))) {
@@ -88,18 +88,18 @@ public class UserContainer {
                 case "gender":
                     parsedField = parsedField.trim();
                     if (!parsedField.matches(getRegexPattern("gender"))) {
-                        jsonInvalidFields.addProperty(fields[i], parsedField + " [Invalid pattern]");
+                        jsonInvalidFields.addProperty(userFieldNames[i], parsedField + " [Invalid pattern]");
                     }
                     break;
                 case "country":
                     parsedField = parsedField.trim().toUpperCase();
                     if (!Countries.containsCountry(parsedField)) {
-                        jsonInvalidFields.addProperty(fields[i], parsedField + " [Invalid code]");
+                        jsonInvalidFields.addProperty(userFieldNames[i], parsedField + " [Invalid code]");
                     }
                     break;
                 default:
-                    if (!parsedField.matches(getRegexPattern(fields[i]))) {
-                        jsonInvalidFields.addProperty(fields[i], parsedField + " [Invalid pattern]");
+                    if (!parsedField.matches(getRegexPattern(userFieldNames[i]))) {
+                        jsonInvalidFields.addProperty(userFieldNames[i], parsedField + " [Invalid pattern]");
                     }
                     break;
             }
@@ -119,12 +119,24 @@ public class UserContainer {
         return el.toString().substring(1, el.toString().length() - 1);
     }
 
-    public Map<String, User> getUsers() {
-        return users;
-    }
+    public JsonArray getUsers() {
+        JsonArray data = new JsonArray();
+        for (String username : users.keySet()) {
+            JsonObject self = new JsonObject();
+            self.addProperty("rel", "self");
+            self.addProperty("resource", "users/" + username);
 
-    public User getUser(String username) {
-        return users.get(username);
+            JsonArray links = new JsonArray();
+            links.add(self);
+
+            JsonObject user = new JsonObject();
+            user.addProperty("username", username);
+            user.add("links", links);
+            
+            data.add(user);
+        }
+
+        return data;
     }
 
     public boolean usernameExists(String username) {
