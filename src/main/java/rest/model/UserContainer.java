@@ -12,51 +12,65 @@ import java.util.*;
 public class UserContainer {
     Map<String, User> users = new HashMap<>();
     Set<String> emails = new HashSet<>();
-    String[] userFieldNames;
+    String[] userPropNames;
 
     public UserContainer() {
-        userFieldNames = new String[] {
+        userPropNames = new String[] {
                 "username", "password", "passwordConfirm", "email",
                 "firstName", "lastName", "birthDate", "country", "city",
                 "address", "job", "gender", "interests", "about" };
     }
 
     public void addUser(User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("null data");
-        }
         users.put(user.getUsername(), user);
         emails.add(user.getEmail());
     }
 
-    public JsonObject checkUserFields(JsonObject requestJson) {
-        if (requestJson == null) {
-            throw new IllegalArgumentException("null data");
-        }
-        JsonObject jsonInvalidFields = new JsonObject();
+    public JsonObject checkUserFields(JsonObject requestJson, String paramsUsername, boolean userUpdate) {
+        JsonObject invalidRequestProps = new JsonObject();
 
-        for (int i = 0; i < userFieldNames.length; i++) {
-            JsonElement field = requestJson.get(userFieldNames[i]);
-            if (field == null) {
-                jsonInvalidFields.addProperty(userFieldNames[i], "[Missing value]");
+        for (int i = 0; i < userPropNames.length; i++) {
+            JsonElement requestProp = requestJson.get(userPropNames[i]);
+            if (requestProp == null) {
+                invalidRequestProps.addProperty(userPropNames[i], "[Missing value]");
                 continue;
             }
-            String parsedField = parseJsonElement(field);
-            switch (userFieldNames[i]) {
+            String parsedRequestProp = parseRequestProp(requestProp);
+            switch (userPropNames[i]) {
                 case "username":
-                    parsedField = parsedField.trim().toLowerCase();
-                    if (usernameExists(parsedField)) {
-                        jsonInvalidFields.addProperty("username", parsedField + " [Already taken]");
-                    } else if (!parsedField.matches(getRegexPattern("username"))) {
-                        jsonInvalidFields.addProperty("username", parsedField + " [Invalid pattern]");
+                    if (userUpdate) {
+                        String requestUsername = parseRequestProp(requestJson.get("username")).trim().toLowerCase();
+                        if (!requestUsername.equals(paramsUsername)) {
+                            invalidRequestProps.addProperty("username", parsedRequestProp + " [Username modification not permitted]");
+                            return invalidRequestProps;
+                        }
+                    } else {
+                        parsedRequestProp = parsedRequestProp.trim().toLowerCase();
+                        if (usernameExists(parsedRequestProp)) {
+                            invalidRequestProps.addProperty("username", parsedRequestProp + " [Already taken]");
+                        } else if (!parsedRequestProp.matches(getRegexPattern("username"))) {
+                            invalidRequestProps.addProperty("username", parsedRequestProp + " [Invalid pattern]");
+                        }
                     }
                     break;
                 case "email":
-                    parsedField = parsedField.trim().toLowerCase();
-                    if (emailExists(parsedField)) {
-                        jsonInvalidFields.addProperty("email", parsedField + " [Already taken]");
-                    } else if (!parsedField.matches(getRegexPattern("email"))) {
-                        jsonInvalidFields.addProperty("email", parsedField + " [Invalid pattern]");
+                    parsedRequestProp = parsedRequestProp.trim().toLowerCase();
+                    boolean skipEmailCheck = false;
+                    if (userUpdate) {
+                        String requestUsername = parseRequestProp(requestJson.get("username")).trim().toLowerCase();
+                        if (requestUsername.equals(paramsUsername)) {
+                            String oldEmail = users.get(requestUsername).getEmail();
+                            if (oldEmail.equals(parsedRequestProp)) {
+                                skipEmailCheck = true;
+                            }
+                        }
+                    }
+                    if (!skipEmailCheck) {
+                        if (emailExists(parsedRequestProp)) {
+                            invalidRequestProps.addProperty("email", parsedRequestProp + " [Already taken]");
+                        } else if (!parsedRequestProp.matches(getRegexPattern("email"))) {
+                            invalidRequestProps.addProperty("email", parsedRequestProp + " [Invalid pattern]");
+                        }
                     }
                     break;
                 case "passwordConfirm":
@@ -64,59 +78,56 @@ public class UserContainer {
                     if (password == null) {
                         break;
                     }
-                    String parsedPassword = parseJsonElement(password);
-                    if (parsedPassword.matches(getRegexPattern("password")) &&  !parsedPassword.equals(parsedField)) {
-                        jsonInvalidFields.addProperty("passwordConfirm", parsedField + " [Mismatch]");
+                    String parsedPassword = parseRequestProp(password);
+                    if (parsedPassword.matches(getRegexPattern("password")) && !parsedPassword.equals(parsedRequestProp)) {
+                        invalidRequestProps.addProperty("passwordConfirm", parsedRequestProp + " [Mismatch]");
                     }
                     break;
                 case "birthDate":
-                    if (!isValidDate(parsedField)) {
-                        jsonInvalidFields.addProperty("birthDate", parsedField + " [Invalid pattern]");
+                    if (!isValidDate(parsedRequestProp)) {
+                        invalidRequestProps.addProperty("birthDate", parsedRequestProp + " [Invalid pattern]");
                     }
                     break;
                 case "interests":
-                    parsedField = parsedField.trim();
-                    if (!parsedField.matches(getRegexPattern("interests")) && parsedField.length() > 100) {
-                        jsonInvalidFields.addProperty("interests", parsedField + " [Invalid pattern]");
+                    parsedRequestProp = parsedRequestProp.trim();
+                    if (!parsedRequestProp.matches(getRegexPattern("interests")) && parsedRequestProp.length() > 100) {
+                        invalidRequestProps.addProperty("interests", parsedRequestProp + " [Invalid pattern]");
                     }
                     break;
                 case "about":
-                    parsedField = parsedField.trim();
-                    if (!parsedField.matches(getRegexPattern("about")) && parsedField.length() > 500) {
-                        jsonInvalidFields.addProperty("about", parsedField + " [Invalid pattern]");
+                    parsedRequestProp = parsedRequestProp.trim();
+                    if (!parsedRequestProp.matches(getRegexPattern("about")) && parsedRequestProp.length() > 500) {
+                        invalidRequestProps.addProperty("about", parsedRequestProp + " [Invalid pattern]");
                     }
                     break;
                 case "gender":
-                    parsedField = parsedField.trim();
-                    if (!parsedField.matches(getRegexPattern("gender"))) {
-                        jsonInvalidFields.addProperty(userFieldNames[i], parsedField + " [Invalid pattern]");
+                    parsedRequestProp = parsedRequestProp.trim();
+                    if (!parsedRequestProp.matches(getRegexPattern("gender"))) {
+                        invalidRequestProps.addProperty(userPropNames[i], parsedRequestProp + " [Invalid pattern]");
                     }
                     break;
                 case "country":
-                    parsedField = parsedField.trim().toUpperCase();
-                    if (!Countries.containsCountry(parsedField)) {
-                        jsonInvalidFields.addProperty(userFieldNames[i], parsedField + " [Invalid code]");
+                    parsedRequestProp = parsedRequestProp.trim().toUpperCase();
+                    if (!Countries.containsCountry(parsedRequestProp)) {
+                        invalidRequestProps.addProperty(userPropNames[i], parsedRequestProp + " [Invalid code]");
                     }
                     break;
                 default:
-                    if (!parsedField.matches(getRegexPattern(userFieldNames[i]))) {
-                        jsonInvalidFields.addProperty(userFieldNames[i], parsedField + " [Invalid pattern]");
+                    if (!parsedRequestProp.matches(getRegexPattern(userPropNames[i]))) {
+                        invalidRequestProps.addProperty(userPropNames[i], parsedRequestProp + " [Invalid pattern]");
                     }
                     break;
             }
         }
 
-        return jsonInvalidFields;
+        return invalidRequestProps;
     }
 
     public String getResource(User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("null data");
-        }
         return "users/" + user.getUsername();
     }
 
-    public String parseJsonElement(JsonElement el) {
+    public String parseRequestProp(JsonElement el) {
         return el.toString().substring(1, el.toString().length() - 1);
     }
 

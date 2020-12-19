@@ -47,17 +47,17 @@ public class test {
                                 new Gson().toJsonTree("")));
             }
 
-            JsonObject jsonInvalidFields = userContainer.checkUserFields(jsonRequest);
-            if (jsonInvalidFields.size() == 0) {
+            JsonObject invalidRequestProps = userContainer.checkUserFields(jsonRequest, "", false);
+            if (invalidRequestProps.size() == 0) {
                 response.status(201);
                 User user = new Gson().fromJson(request.body(), User.class);
-                response.header("Location", "http://127.0.0.1:5677/users/" + user.getUsername());
+                response.header("Location", "http://127.0.0.1:5677/" + userContainer.getResource(user));
                 userContainer.addUser(user);
                 return new Gson().
                         toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.SUCCESS,
                                 "",
                                 201,
-                                "users/" + user.getUsername(),
+                                userContainer.getResource(user),
                                 new Gson().toJsonTree(user)));
             } else {
                 response.status(400);
@@ -66,7 +66,7 @@ public class test {
                                 "Wrong user parameters",
                                 400,
                                 "",
-                                new Gson().toJsonTree(jsonInvalidFields)));
+                                new Gson().toJsonTree(invalidRequestProps)));
             }
         });
 
@@ -86,14 +86,17 @@ public class test {
                                 new Gson().toJsonTree("")));
             }
 
-            User user = userContainer.getUser(request.params(":username"));
+            String username = request.params(":username").trim().toLowerCase();
+            User user = userContainer.getUser(username);
             if (user == null) {
                 response.status(404);
+                JsonObject data = new JsonObject();
+                data.addProperty("username", username);
                 return new Gson()
                         .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
-                                "Invalid username",
+                                "Username not found",
                                 404,
-                                new Gson().toJsonTree("")));
+                                new Gson().toJsonTree(data)));
             } else {
                 response.status(200);
                 return new Gson()
@@ -101,6 +104,54 @@ public class test {
                                 "",
                                 200,
                                 new Gson().toJsonTree(user)));
+            }
+        });
+
+        put("/users/:username", (request, response) -> {
+            response.type("application/json");
+
+            JsonObject jsonRequest = null;
+            try {
+                jsonRequest = JsonParser.parseString(request.body()).getAsJsonObject();
+            } catch (JsonSyntaxException e) {
+                response.status(400);
+                return new Gson()
+                        .toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.ERROR,
+                                "Malformed request",
+                                400,
+                                "",
+                                new Gson().toJsonTree("")));
+            }
+
+            String username = request.params(":username").trim().toLowerCase();
+            if (!userContainer.usernameExists(username)) {
+                response.status(404);
+                JsonObject data = new JsonObject();
+                data.addProperty("username", username);
+                return new Gson()
+                        .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                                "Username not found",
+                                404,
+                                new Gson().toJsonTree(data)));
+            } else {
+                JsonObject invalidRequestProps = userContainer.checkUserFields(jsonRequest, username, true);
+                if (invalidRequestProps.size() == 0) {
+                    response.status(200);
+                    User user = new Gson().fromJson(request.body(), User.class);
+                    userContainer.addUser(user);
+                    return new Gson().
+                            toJson(new UserResponse(UserResponse.ResponseEnum.SUCCESS,
+                                    "",
+                                    200,
+                                    new Gson().toJsonTree(user)));
+                } else {
+                    response.status(400);
+                    return new Gson()
+                            .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                                    "Wrong user parameters",
+                                    400,
+                                    new Gson().toJsonTree(invalidRequestProps)));
+                }
             }
         });
     }
