@@ -154,5 +154,15 @@ public class test {
                             new Gson().toJsonTree("")));
         });
 
+        delete("/users/:username", (request, response) -> {
+            response.type("application/json");
+            response.status(405);
+
+            return new Gson()
+                    .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                            "DELETE not supported",
+                            new Gson().toJsonTree("")));
+        });
+        
     }
 }
