@@ -154,6 +154,18 @@ public class test {
                 }
             }
         });
+
+        post("/users/:username", (request, response) -> {
+            response.type("application/json");
+            response.status(405);
+
+            return new Gson()
+                    .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                            "POST not supported in non container URIs",
+                            405,
+                            new Gson().toJsonTree("")));
+        });
+
     }
 
 }
