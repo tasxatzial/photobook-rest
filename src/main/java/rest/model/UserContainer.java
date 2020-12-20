@@ -124,7 +124,7 @@ public class UserContainer {
         return invalidRequestProps;
     }
 
-    public static JsonObject getResources(User user) {
+    public static JsonArray getLinks(User user) {
         String username = user.getUsername();
 
         JsonArray resources = new JsonArray();
@@ -134,10 +134,12 @@ public class UserContainer {
         self.addProperty("rel", "self");
         self.add("resource", resources);
 
-        return self;
+        JsonArray links = new JsonArray();
+        links.add(self);
+        return links;
     }
 
-    public String getResource(User user) {
+    public String getMainLink(User user) {
         return "users/" + user.getUsername();
     }
 
@@ -155,12 +157,9 @@ public class UserContainer {
             String username = pair.getKey();
             User user = pair.getValue();
 
-            JsonArray links = new JsonArray();
-            links.add(getResources(user));
-
             JsonObject data = new JsonObject();
             data.addProperty("username", username);
-            data.add("links", links);
+            data.add("links", getLinks(user));
 
             usersData.add(data);
         }

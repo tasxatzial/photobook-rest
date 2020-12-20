@@ -1,11 +1,7 @@
 package rest.controller;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
+import com.google.gson.*;
 import rest.model.PostContainer;
-import rest.model.UserPostContainer;
 import rest.model.User;
 import rest.model.UserContainer;
 
@@ -50,19 +46,19 @@ public class test {
             if (invalidRequestProps.size() == 0) {
                 response.status(201);
                 User user = new Gson().fromJson(request.body(), User.class);
-                response.header("Location", "http://127.0.0.1:5677/" + userContainer.getResource(user));
+                response.header("Location", "http://127.0.0.1:5677/" + userContainer.getMainLink(user));
                 userContainer.addUser(user);
                 return new Gson().
                         toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.SUCCESS,
                                 "",
-                                userContainer.getResource(user),
+                                UserContainer.getLinks(user),
                                 new Gson().toJsonTree(user)));
             } else {
                 response.status(400);
                 return new Gson()
                         .toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.ERROR,
                                 "Wrong user parameters",
-                                "",
+                                new JsonArray(),
                                 new Gson().toJsonTree(invalidRequestProps)));
             }
         });
@@ -98,7 +94,7 @@ public class test {
                 return new Gson()
                         .toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.ERROR,
                                 "Malformed request",
-                                "",
+                                new JsonArray(),
                                 new Gson().toJsonTree("")));
             }
 

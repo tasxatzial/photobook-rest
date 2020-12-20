@@ -36,7 +36,7 @@ public class PostContainer {
         userPostContainer.addPost(post);
     }
 
-    public static JsonObject getResources(Post post) {
+    public static JsonArray getResources(Post post) {
         int postID = post.getPostID();
 
         JsonArray resources = new JsonArray();
@@ -47,7 +47,9 @@ public class PostContainer {
         self.addProperty("rel", "self");
         self.add("resource", resources);
 
-        return self;
+        JsonArray links = new JsonArray();
+        links.add(self);
+        return links;
     }
 
     public JsonArray getPosts() {

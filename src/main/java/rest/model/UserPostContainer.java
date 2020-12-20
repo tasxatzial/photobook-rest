@@ -20,12 +20,9 @@ public class UserPostContainer {
             int postID = pair.getKey();
             Post post = pair.getValue();
 
-            JsonArray links = new JsonArray();
-            links.add(PostContainer.getResources(post));
-
             JsonObject data = new JsonObject();
             data.addProperty("ID", postID);
-            data.add("links", links);
+            data.add("links", PostContainer.getResources(post));
 
             postsData.add(data);
         }

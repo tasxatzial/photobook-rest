@@ -1,18 +1,19 @@
 package rest.controller;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 public class GenContainerResponse {
     private ResponseEnum status;
     private String message;
-    private String resource;
+    private JsonElement links;
     private JsonElement data;
 
-    public GenContainerResponse(ResponseEnum status, String message, String resource, JsonElement data) {
+    public GenContainerResponse(ResponseEnum status, String message, JsonElement links, JsonElement data) {
         this.status = status;
         this.message = message;
         this.data = data;
-        this.resource = resource;
+        this.links = links;
     }
 
     public ResponseEnum getStatus() {
@@ -39,12 +40,12 @@ public class GenContainerResponse {
         this.data = data;
     }
 
-    public String getResource() {
-        return resource;
+    public JsonElement getLinks() {
+        return links;
     }
 
-    public void setResource(String resource) {
-        this.resource = resource;
+    public void setLinks(JsonElement resource) {
+        this.links = links;
     }
 
     public enum ResponseEnum {
