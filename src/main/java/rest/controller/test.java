@@ -184,5 +184,15 @@ public class test {
                             new Gson().toJsonTree("")));
         });
 
+        post("/posts", (request, response) -> {
+            response.type("application/json");
+            response.status(405);
+
+            return new Gson()
+                    .toJson(new GenResponse(GenResponse.ResponseEnum.ERROR,
+                            "POST not supported",
+                            new Gson().toJsonTree("")));
+        });
+
     }
 }
