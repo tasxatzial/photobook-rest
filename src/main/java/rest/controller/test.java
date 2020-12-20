@@ -24,7 +24,7 @@ public class test {
             response.type("application/json");
             response.status(200);
             return new Gson()
-                    .toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.SUCCESS,
+                    .toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.SUCCESS,
                             "",
                             "",
                             new Gson().toJsonTree(userContainer.getUsers())));
@@ -39,7 +39,7 @@ public class test {
             } catch (JsonSyntaxException e) {
                 response.status(400);
                 return new Gson()
-                        .toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.ERROR,
+                        .toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.ERROR,
                                 "Malformed request",
                                 "",
                                 new Gson().toJsonTree("")));
@@ -52,14 +52,14 @@ public class test {
                 response.header("Location", "http://127.0.0.1:5677/" + userContainer.getResource(user));
                 userContainer.addUser(user);
                 return new Gson().
-                        toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.SUCCESS,
+                        toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.SUCCESS,
                                 "",
                                 userContainer.getResource(user),
                                 new Gson().toJsonTree(user)));
             } else {
                 response.status(400);
                 return new Gson()
-                        .toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.ERROR,
+                        .toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.ERROR,
                                 "Wrong user parameters",
                                 "",
                                 new Gson().toJsonTree(invalidRequestProps)));
@@ -71,7 +71,7 @@ public class test {
             response.status(405);
 
             return new Gson()
-                    .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                    .toJson(new GenResponse(GenResponse.ResponseEnum.ERROR,
                             "DELETE not supported",
                             new Gson().toJsonTree("")));
         });
@@ -81,7 +81,7 @@ public class test {
             response.status(405);
 
             return new Gson()
-                    .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                    .toJson(new GenResponse(GenResponse.ResponseEnum.ERROR,
                             "PUT not supported in container URIs",
                             new Gson().toJsonTree("")));
         });
@@ -95,7 +95,7 @@ public class test {
             } catch (JsonSyntaxException e) {
                 response.status(400);
                 return new Gson()
-                        .toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.ERROR,
+                        .toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.ERROR,
                                 "Malformed request",
                                 "",
                                 new Gson().toJsonTree("")));
@@ -108,13 +108,13 @@ public class test {
                 JsonObject data = new JsonObject();
                 data.addProperty("username", username);
                 return new Gson()
-                        .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                        .toJson(new GenResponse(GenResponse.ResponseEnum.ERROR,
                                 "Username not found",
                                 new Gson().toJsonTree(data)));
             } else {
                 response.status(200);
                 return new Gson()
-                        .toJson(new UserResponse(UserResponse.ResponseEnum.SUCCESS,
+                        .toJson(new GenResponse(GenResponse.ResponseEnum.SUCCESS,
                                 "",
                                 new Gson().toJsonTree(user)));
             }
@@ -129,7 +129,7 @@ public class test {
             } catch (JsonSyntaxException e) {
                 response.status(400);
                 return new Gson()
-                        .toJson(new UserContainerResponse(UserContainerResponse.ResponseEnum.ERROR,
+                        .toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.ERROR,
                                 "Malformed request",
                                 "",
                                 new Gson().toJsonTree("")));
@@ -141,7 +141,7 @@ public class test {
                 JsonObject data = new JsonObject();
                 data.addProperty("username", username);
                 return new Gson()
-                        .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                        .toJson(new GenResponse(GenResponse.ResponseEnum.ERROR,
                                 "Username not found",
                                 new Gson().toJsonTree(data)));
             } else {
@@ -151,13 +151,13 @@ public class test {
                     User user = new Gson().fromJson(request.body(), User.class);
                     userContainer.addUser(user);
                     return new Gson().
-                            toJson(new UserResponse(UserResponse.ResponseEnum.SUCCESS,
+                            toJson(new GenResponse(GenResponse.ResponseEnum.SUCCESS,
                                     "",
                                     new Gson().toJsonTree(user)));
                 } else {
                     response.status(400);
                     return new Gson()
-                            .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                            .toJson(new GenResponse(GenResponse.ResponseEnum.ERROR,
                                     "Wrong user parameters",
                                     new Gson().toJsonTree(invalidRequestProps)));
                 }
@@ -169,7 +169,7 @@ public class test {
             response.status(405);
 
             return new Gson()
-                    .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                    .toJson(new GenResponse(GenResponse.ResponseEnum.ERROR,
                             "POST not supported in non container URIs",
                             new Gson().toJsonTree("")));
         });
@@ -179,7 +179,7 @@ public class test {
             response.status(405);
 
             return new Gson()
-                    .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
+                    .toJson(new GenResponse(GenResponse.ResponseEnum.ERROR,
                             "DELETE not supported",
                             new Gson().toJsonTree("")));
         });
