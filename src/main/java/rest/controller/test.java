@@ -93,9 +93,8 @@ public class test {
             } catch (JsonSyntaxException e) {
                 response.status(400);
                 return new Gson()
-                        .toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.ERROR,
+                        .toJson(new GenResponse(GenResponse.ResponseEnum.ERROR,
                                 "Malformed request",
-                                new JsonArray(),
                                 new Gson().toJsonTree("")));
             }
 
@@ -218,6 +217,56 @@ public class test {
                     .toJson(new GenResponse(GenResponse.ResponseEnum.SUCCESS,
                             "",
                             new Gson().toJsonTree(postContainer.getPosts())));
+        });
+
+        get("/posts/:postID", (request, response) -> {
+            response.type("application/json");
+
+            JsonObject jsonRequest = null;
+            try {
+                jsonRequest = JsonParser.parseString(request.body()).getAsJsonObject();
+            } catch (JsonSyntaxException e) {
+                response.status(400);
+                return new Gson()
+                        .toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.ERROR,
+                                "Malformed request",
+                                new JsonArray(),
+                                new Gson().toJsonTree("")));
+            }
+
+            String str_postID = request.params(":postID");
+            int postID = -1;
+            try {
+                postID = Integer.parseInt(str_postID);
+            } catch (NumberFormatException e) {
+                response.status(404);
+                JsonObject data = new JsonObject();
+                data.addProperty("postID", str_postID);
+                return new Gson()
+                        .toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.ERROR,
+                                "Invalid post ID format",
+                                new JsonArray(),
+                                new Gson().toJsonTree(data)));
+            }
+
+            Post post = postContainer.getPost(postID);
+            if (post == null) {
+                response.status(404);
+                JsonObject data = new JsonObject();
+                data.addProperty("postID", postID);
+                return new Gson()
+                        .toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.ERROR,
+                                "Post ID not found",
+                                new JsonArray(),
+                                new Gson().toJsonTree(data)));
+            } else {
+                response.status(200);
+                return new Gson()
+                        .toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.SUCCESS,
+                                "",
+                                PostContainer.getLinks(post),
+                                new Gson().toJsonTree(post)));
+            }
         });
     }
 }

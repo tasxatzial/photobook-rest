@@ -34,6 +34,10 @@ public class PostContainer {
         return el.toString().substring(1, el.toString().length() - 1);
     }
 
+    public Post getPost(int postID) {
+        return posts.get(postID);
+    }
+
     public void addPost(Post post) {
         int postID = generatePostID(post);
         String username = post.getUsername();
