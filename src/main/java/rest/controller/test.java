@@ -203,5 +203,15 @@ public class test {
                             "DELETE not supported",
                             new Gson().toJsonTree("")));
         });
+
+        put("/posts", (request, response) -> {
+            response.type("application/json");
+            response.status(405);
+
+            return new Gson()
+                    .toJson(new GenResponse(GenResponse.ResponseEnum.ERROR,
+                            "PUT not supported in container URIs",
+                            new Gson().toJsonTree("")));
+        });
     }
 }
