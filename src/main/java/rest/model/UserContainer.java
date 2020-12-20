@@ -124,6 +124,19 @@ public class UserContainer {
         return invalidRequestProps;
     }
 
+    public static JsonObject getResources(User user) {
+        String username = user.getUsername();
+
+        JsonArray resources = new JsonArray();
+        resources.add("users/" + username);
+
+        JsonObject self = new JsonObject();
+        self.addProperty("rel", "self");
+        self.add("resource", resources);
+
+        return self;
+    }
+
     public String getResource(User user) {
         return "users/" + user.getUsername();
     }
@@ -138,19 +151,18 @@ public class UserContainer {
 
     public JsonArray getUsers() {
         JsonArray usersData = new JsonArray();
-        for (String username : users.keySet()) {
-            JsonObject self = new JsonObject();
-            self.addProperty("rel", "self");
-            self.addProperty("resource", "users/" + username);
+        for (Map.Entry<String, User> pair : users.entrySet()) {
+            String username = pair.getKey();
+            User user = pair.getValue();
 
             JsonArray links = new JsonArray();
-            links.add(self);
+            links.add(getResources(user));
 
-            JsonObject user = new JsonObject();
-            user.addProperty("username", username);
-            user.add("links", links);
+            JsonObject data = new JsonObject();
+            data.addProperty("username", username);
+            data.add("links", links);
 
-            usersData.add(user);
+            usersData.add(data);
         }
 
         return usersData;

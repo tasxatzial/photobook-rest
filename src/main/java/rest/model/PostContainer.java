@@ -36,9 +36,10 @@ public class PostContainer {
         userPostContainer.addPost(post);
     }
 
-    public JsonObject getResources(Post post) {
-        JsonArray resources = new JsonArray();
+    public static JsonObject getResources(Post post) {
         int postID = post.getPostID();
+
+        JsonArray resources = new JsonArray();
         resources.add("post/" + postID);
         resources.add("users/" + post.getUsername() + "/posts/" + postID);
 
@@ -51,24 +52,11 @@ public class PostContainer {
 
     public JsonArray getPosts() {
         JsonArray postsData = new JsonArray();
-        for (Map.Entry<String, UserPostContainer> _userPostContainer : posts.entrySet()) {
-            String username = _userPostContainer.getKey();
-            UserPostContainer userPostContainer = _userPostContainer.getValue();
-            Map<Integer, Post> userPosts = userPostContainer.getUserPosts();
-
-            for (Map.Entry<Integer, Post> _post : userPosts.entrySet()) {
-                int postID = _post.getKey();
-                Post post = _post.getValue();
-
-                JsonArray links = new JsonArray();
-                links.add(getResources(post));
-
-                JsonObject data = new JsonObject();
-                data.addProperty("ID", postID);
-                data.addProperty("username", username);
-                data.add("links", links);
-
-                postsData.add(data);
+        for (Map.Entry<String, UserPostContainer> pair : posts.entrySet()) {
+            UserPostContainer userPostContainer = pair.getValue();
+            JsonArray userPosts = userPostContainer.getPosts();
+            for (int i = 0; i < userPosts.size(); i++) {
+                postsData.add(userPosts.get(i));
             }
         }
 

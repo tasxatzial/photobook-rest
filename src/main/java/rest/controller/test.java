@@ -41,9 +41,8 @@ public class test {
             } catch (JsonSyntaxException e) {
                 response.status(400);
                 return new Gson()
-                        .toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.ERROR,
+                        .toJson(new GenResponse(GenResponse.ResponseEnum.ERROR,
                                 "Malformed request",
-                                "",
                                 new Gson().toJsonTree("")));
             }
 
@@ -131,9 +130,8 @@ public class test {
             } catch (JsonSyntaxException e) {
                 response.status(400);
                 return new Gson()
-                        .toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.ERROR,
+                        .toJson(new GenResponse(GenResponse.ResponseEnum.ERROR,
                                 "Malformed request",
-                                "",
                                 new Gson().toJsonTree("")));
             }
 
@@ -224,5 +222,7 @@ public class test {
                             "",
                             new Gson().toJsonTree(postContainer.getPosts())));
         });
+
+
     }
 }
