@@ -18,7 +18,8 @@ public class UserContainer {
         userPropNames = new String[] {
                 "username", "password", "passwordConfirm", "email",
                 "firstName", "lastName", "birthDate", "country", "city",
-                "address", "job", "gender", "interests", "about" };
+                "address", "job", "gender", "interests", "about"
+        };
     }
 
     public void addUser(User user) {
@@ -131,6 +132,10 @@ public class UserContainer {
         return el.toString().substring(1, el.toString().length() - 1);
     }
 
+    public User getUser(String username) {
+        return users.get(username);
+    }
+
     public JsonArray getUsers() {
         JsonArray data = new JsonArray();
         for (String username : users.keySet()) {
@@ -157,10 +162,6 @@ public class UserContainer {
 
     public boolean emailExists(String email) {
         return emails.contains(email);
-    }
-
-    public User getUser(String username) {
-        return users.get(username);
     }
 
     /**
