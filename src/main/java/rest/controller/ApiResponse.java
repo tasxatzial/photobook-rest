@@ -1,26 +1,31 @@
 package rest.controller;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
-public class GenContainerResponse {
-    private ResponseEnum status;
+public class ApiResponse {
+    private ApiResponseEnum status;
     private String message;
     private JsonElement links;
     private JsonElement data;
 
-    public GenContainerResponse(ResponseEnum status, String message, JsonElement links, JsonElement data) {
+    public ApiResponse(ApiResponseEnum status, String message, JsonElement data) {
         this.status = status;
         this.message = message;
         this.data = data;
+        this.links = new JsonArray();
+    }
+
+    public ApiResponse(ApiResponseEnum status, String message, JsonElement links, JsonElement data) {
+        this(status, message, data);
         this.links = links;
     }
 
-    public ResponseEnum getStatus() {
+    public ApiResponseEnum getStatus() {
         return status;
     }
 
-    public void setStatus(ResponseEnum status) {
+    public void setStatus(ApiResponseEnum status) {
         this.status = status;
     }
 
@@ -44,11 +49,12 @@ public class GenContainerResponse {
         return links;
     }
 
-    public void setLinks(JsonElement resource) {
+    public void setLinks(JsonElement links) {
         this.links = links;
     }
 
-    public enum ResponseEnum {
+    public enum ApiResponseEnum {
         SUCCESS, ERROR
     }
+
 }
