@@ -72,7 +72,7 @@ public class test {
 
             return new Gson()
                     .toJson(new UserResponse(UserResponse.ResponseEnum.ERROR,
-                            "DELETE not supported in container URIs",
+                            "DELETE not supported",
                             new Gson().toJsonTree("")));
         });
 
