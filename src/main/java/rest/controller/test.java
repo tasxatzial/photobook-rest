@@ -1,6 +1,7 @@
 package rest.controller;
 
 import com.google.gson.*;
+import rest.model.Post;
 import rest.model.PostContainer;
 import rest.model.User;
 import rest.model.UserContainer;
@@ -218,7 +219,5 @@ public class test {
                             "",
                             new Gson().toJsonTree(postContainer.getPosts())));
         });
-
-
     }
 }
