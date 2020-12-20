@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import rest.model.PostContainer;
 import rest.model.User;
 import rest.model.UserContainer;
 
@@ -16,6 +17,7 @@ import static spark.Spark.put;
 
 public class test {
     private static final UserContainer userContainer = new UserContainer();
+    private static final PostContainer postContainer = new PostContainer();
 
     public static void main(String[] args) {
         port(5677);
@@ -212,6 +214,16 @@ public class test {
                     .toJson(new GenResponse(GenResponse.ResponseEnum.ERROR,
                             "PUT not supported in container URIs",
                             new Gson().toJsonTree("")));
+        });
+
+        get("/posts", (request, response) -> {
+            response.type("application/json");
+            response.status(200);
+            return new Gson()
+                    .toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.SUCCESS,
+                            "",
+                            "",
+                            new Gson().toJsonTree(postContainer.getPosts())));
         });
     }
 }

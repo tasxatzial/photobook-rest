@@ -43,6 +43,26 @@ public class PostContainer {
     }
 
     public JsonArray getPosts() {
-        return null;
+        JsonArray data = new JsonArray();
+        for (Integer postID : posts.keySet()) {
+            JsonArray resources = new JsonArray();
+            resources.add("post/" + postID);
+            resources.add("users/" + posts.get(postID).getUsername() + "/posts/" + postID);
+
+            JsonObject self = new JsonObject();
+            self.addProperty("rel", "self");
+            self.add("resource", resources);
+
+            JsonArray links = new JsonArray();
+            links.add(self);
+
+            JsonObject post = new JsonObject();
+            post.addProperty("ID", postID);
+            post.add("links", links);
+
+            data.add(post);
+        }
+
+        return data;
     }
 }
