@@ -137,7 +137,7 @@ public class UserContainer {
     }
 
     public JsonArray getUsers() {
-        JsonArray data = new JsonArray();
+        JsonArray usersData = new JsonArray();
         for (String username : users.keySet()) {
             JsonObject self = new JsonObject();
             self.addProperty("rel", "self");
@@ -150,10 +150,10 @@ public class UserContainer {
             user.addProperty("username", username);
             user.add("links", links);
 
-            data.add(user);
+            usersData.add(user);
         }
 
-        return data;
+        return usersData;
     }
 
     public boolean usernameExists(String username) {

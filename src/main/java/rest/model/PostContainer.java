@@ -8,18 +8,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class PostContainer {
-    Map<Integer, Post> posts = new HashMap<>();
-    int lastPostID;
     String[] postPropNames;
+    int lastPostID;
+    Map<String, UserPostContainer> posts = new HashMap<>();
 
     public PostContainer() {
         postPropNames = new String[] {
-          "description", "resourceURL", "imageURL", "imageBase64", "latitude", "longitude"
+                "description", "resourceURL", "imageURL", "imageBase64", "latitude", "longitude"
         };
-    }
-
-    public void addPost(Post post) {
-        posts.put(post.getPostID(), post);
     }
 
     private void generatePostID(Post post) {
@@ -34,35 +30,48 @@ public class PostContainer {
         return el.toString().substring(1, el.toString().length() - 1);
     }
 
-    public JsonArray getResource(Post post) {
-        return null;
+    public void addPost(Post post) {
+        UserPostContainer userPostContainer = posts.get(post.getUsername());
+        generatePostID(post);
+        userPostContainer.addPost(post);
     }
 
-    public Post getPost(int postID) {
-        return null;
+    public JsonObject getResources(Post post) {
+        JsonArray resources = new JsonArray();
+        int postID = post.getPostID();
+        resources.add("post/" + postID);
+        resources.add("users/" + post.getUsername() + "/posts/" + postID);
+
+        JsonObject self = new JsonObject();
+        self.addProperty("rel", "self");
+        self.add("resource", resources);
+
+        return self;
     }
 
     public JsonArray getPosts() {
-        JsonArray data = new JsonArray();
-        for (Integer postID : posts.keySet()) {
-            JsonArray resources = new JsonArray();
-            resources.add("post/" + postID);
-            resources.add("users/" + posts.get(postID).getUsername() + "/posts/" + postID);
+        JsonArray postsData = new JsonArray();
+        for (Map.Entry<String, UserPostContainer> _userPostContainer : posts.entrySet()) {
+            String username = _userPostContainer.getKey();
+            UserPostContainer userPostContainer = _userPostContainer.getValue();
+            Map<Integer, Post> userPosts = userPostContainer.getUserPosts();
 
-            JsonObject self = new JsonObject();
-            self.addProperty("rel", "self");
-            self.add("resource", resources);
+            for (Map.Entry<Integer, Post> _post : userPosts.entrySet()) {
+                int postID = _post.getKey();
+                Post post = _post.getValue();
 
-            JsonArray links = new JsonArray();
-            links.add(self);
+                JsonArray links = new JsonArray();
+                links.add(getResources(post));
 
-            JsonObject post = new JsonObject();
-            post.addProperty("ID", postID);
-            post.add("links", links);
+                JsonObject data = new JsonObject();
+                data.addProperty("ID", postID);
+                data.addProperty("username", username);
+                data.add("links", links);
 
-            data.add(post);
+                postsData.add(data);
+            }
         }
 
-        return data;
+        return postsData;
     }
 }

@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import rest.model.PostContainer;
+import rest.model.UserPostContainer;
 import rest.model.User;
 import rest.model.UserContainer;
 
@@ -26,8 +27,7 @@ public class test {
             response.type("application/json");
             response.status(200);
             return new Gson()
-                    .toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.SUCCESS,
-                            "",
+                    .toJson(new GenResponse(GenResponse.ResponseEnum.SUCCESS,
                             "",
                             new Gson().toJsonTree(userContainer.getUsers())));
         });
@@ -220,8 +220,7 @@ public class test {
             response.type("application/json");
             response.status(200);
             return new Gson()
-                    .toJson(new GenContainerResponse(GenContainerResponse.ResponseEnum.SUCCESS,
-                            "",
+                    .toJson(new GenResponse(GenResponse.ResponseEnum.SUCCESS,
                             "",
                             new Gson().toJsonTree(postContainer.getPosts())));
         });
