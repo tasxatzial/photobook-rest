@@ -6,6 +6,9 @@ import rest.model.PostContainer;
 import rest.model.User;
 import rest.model.UserContainer;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import static spark.Spark.delete;
 import static spark.Spark.get;
 import static spark.Spark.options;
@@ -14,8 +17,16 @@ import static spark.Spark.post;
 import static spark.Spark.put;
 
 public class test {
-    private static final UserContainer userContainer = new UserContainer();
+    private static UserContainer userContainer;
     private static final PostContainer postContainer = new PostContainer();
+
+    static {
+        try {
+            userContainer = new UserContainer();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void main(String[] args) {
         port(5677);

@@ -4,6 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -13,8 +15,9 @@ public class UserContainer {
     Map<String, User> users = new HashMap<>();
     Set<String> emails = new HashSet<>();
     String[] userPropNames;
+    Countries countries = new Countries();
 
-    public UserContainer() {
+    public UserContainer() throws IOException {
         userPropNames = new String[] {
                 "username", "password", "passwordConfirm", "email",
                 "firstName", "lastName", "birthDate", "country", "city",
@@ -109,7 +112,7 @@ public class UserContainer {
                     break;
                 case "country":
                     parsedRequestProp = parsedRequestProp.trim().toUpperCase();
-                    if (!Countries.containsCountry(parsedRequestProp)) {
+                    if (!countries.containsCountry(parsedRequestProp)) {
                         invalidRequestProps.addProperty(userPropNames[i], "INVALID_CODE");
                     }
                     break;
