@@ -344,5 +344,14 @@ public class test {
             }
         });
 
+        delete("/users/:username/posts", (request, response) -> {
+            response.type("application/json");
+            response.status(405);
+
+            return new Gson()
+                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                            "DELETE_NOT_SUPPORTED",
+                            new JsonObject()));
+        });
     }
 }
