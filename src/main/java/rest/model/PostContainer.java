@@ -154,7 +154,7 @@ public class PostContainer {
         int postID = post.getPostID();
 
         JsonArray resources = new JsonArray();
-        resources.add("post/" + postID);
+        resources.add("posts/" + postID);
         resources.add("users/" + post.getUsername() + "/posts/" + postID);
 
         JsonObject self = new JsonObject();
