@@ -139,7 +139,7 @@ public class UserContainer {
         return links;
     }
 
-    public String getMainLink(User user) {
+    public static String getMainLink(User user) {
         return "users/" + user.getUsername();
     }
 

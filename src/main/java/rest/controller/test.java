@@ -48,7 +48,7 @@ public class test {
             if (invalidRequestProps.size() == 0) {
                 response.status(201);
                 User user = new Gson().fromJson(request.body(), User.class);
-                response.header("Location", "http://127.0.0.1:5677/" + userContainer.getMainLink(user));
+                response.header("Location", "http://127.0.0.1:5677/" + UserContainer.getMainLink(user));
                 userContainer.addUser(user);
                 return new Gson().
                         toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
@@ -296,5 +296,53 @@ public class test {
                                 postContainer.getUserPosts(user)));
             }
         });
+
+        post("/users/:username/posts", (request, response) -> {
+            response.type("application/json");
+
+            JsonObject jsonRequest = null;
+            try {
+                jsonRequest = JsonParser.parseString(request.body()).getAsJsonObject();
+            } catch (JsonSyntaxException e) {
+                response.status(400);
+                return new Gson()
+                        .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                                "INVALID_REQUEST",
+                                new JsonObject()));
+            }
+
+            String username = request.params(":username").trim().toLowerCase();
+            User user = userContainer.getUser(username);
+            if (user == null) {
+                response.status(404);
+                return new Gson()
+                        .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                                "USERNAME_NOT_FOUND",
+                                new JsonArray(),
+                                new JsonArray()));
+            } else {
+                JsonObject invalidRequestProps = postContainer.checkPostFields(jsonRequest);
+                if (invalidRequestProps.size() == 0) {
+                    response.status(201);
+                    Post post = new Gson().fromJson(request.body(), Post.class);
+                    post.setUsername(username);
+                    postContainer.addPost(post);
+                    response.header("Location", "http://127.0.0.1:5677/" + PostContainer.getMainLink(post));
+                    return new Gson().
+                            toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
+                                    "",
+                                    PostContainer.getLinks(post),
+                                    new JsonObject()));
+                } else {
+                    response.status(400);
+                    return new Gson()
+                            .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                                    "INVALID_PARAMETERS",
+                                    new JsonArray(),
+                                    invalidRequestProps));
+                }
+            }
+        });
+
     }
 }
