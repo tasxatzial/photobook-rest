@@ -107,6 +107,26 @@ public class test {
             }
         });
 
+        post("/users/:username", (request, response) -> {
+            response.type("application/json");
+            response.status(405);
+
+            return new Gson()
+                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                            "POST_NOT_SUPPORTED",
+                            new JsonObject()));
+        });
+
+        delete("/users/:username", (request, response) -> {
+            response.type("application/json");
+            response.status(405);
+
+            return new Gson()
+                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                            "DELETE_NOT_SUPPORTED",
+                            new JsonObject()));
+        });
+
         put("/users/:username", (request, response) -> {
             response.type("application/json");
 
@@ -150,24 +170,14 @@ public class test {
             }
         });
 
-        post("/users/:username", (request, response) -> {
+        get("/posts", (request, response) -> {
             response.type("application/json");
-            response.status(405);
-
+            response.status(200);
             return new Gson()
-                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                            "POST_NOT_SUPPORTED",
-                            new JsonObject()));
-        });
-
-        delete("/users/:username", (request, response) -> {
-            response.type("application/json");
-            response.status(405);
-
-            return new Gson()
-                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                            "DELETE_NOT_SUPPORTED",
-                            new JsonObject()));
+                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
+                            "",
+                            new JsonArray(),
+                            postContainer.getPosts()));
         });
 
         post("/posts", (request, response) -> {
@@ -198,16 +208,6 @@ public class test {
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
                             "PUT_NOT_SUPPORTED",
                             new JsonObject()));
-        });
-
-        get("/posts", (request, response) -> {
-            response.type("application/json");
-            response.status(200);
-            return new Gson()
-                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
-                            "",
-                            new JsonArray(),
-                            postContainer.getPosts()));
         });
 
         get("/posts/:postID", (request, response) -> {
@@ -245,13 +245,13 @@ public class test {
             }
         });
 
-        put("/posts/:postID", (request, response) -> {
+        post("/posts/:postID", (request, response) -> {
             response.type("application/json");
             response.status(405);
 
             return new Gson()
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                            "PUT_NOT_SUPPORTED",
+                            "POST_NOT_SUPPORTED",
                             new JsonObject()));
         });
 
@@ -265,13 +265,13 @@ public class test {
                             new JsonObject()));
         });
 
-        post("/posts/:postID", (request, response) -> {
+        put("/posts/:postID", (request, response) -> {
             response.type("application/json");
             response.status(405);
 
             return new Gson()
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                            "POST_NOT_SUPPORTED",
+                            "PUT_NOT_SUPPORTED",
                             new JsonObject()));
         });
 
@@ -420,16 +420,6 @@ public class test {
                             new JsonObject()));
         });
 
-        put("/users/:username/posts/:postID", (request, response) -> {
-            response.type("application/json");
-            response.status(405);
-
-            return new Gson()
-                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                            "PUT_NOT_SUPPORTED",
-                            new JsonObject()));
-        });
-
         delete("/users/:username/posts/:postID", (request, response) -> {
             response.type("application/json");
             response.status(405);
@@ -437,6 +427,16 @@ public class test {
             return new Gson()
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
                             "DELETE_NOT_SUPPORTED",
+                            new JsonObject()));
+        });
+
+        put("/users/:username/posts/:postID", (request, response) -> {
+            response.type("application/json");
+            response.status(405);
+
+            return new Gson()
+                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                            "PUT_NOT_SUPPORTED",
                             new JsonObject()));
         });
     }

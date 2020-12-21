@@ -134,8 +134,13 @@ public class UserContainer {
         self.addProperty("rel", "self");
         self.add("resource", resources);
 
+        JsonObject posts = new JsonObject();
+        posts.addProperty("rel", "posts");
+        posts.addProperty("resource", "users/" + username + "/posts");
+
         JsonArray links = new JsonArray();
         links.add(self);
+        links.add(posts);
         return links;
     }
 
