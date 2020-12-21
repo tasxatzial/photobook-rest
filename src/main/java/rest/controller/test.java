@@ -419,5 +419,15 @@ public class test {
                             "POST_NOT_SUPPORTED",
                             new JsonObject()));
         });
+
+        put("/users/:username/posts/:postID", (request, response) -> {
+            response.type("application/json");
+            response.status(405);
+
+            return new Gson()
+                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                            "PUT_NOT_SUPPORTED",
+                            new JsonObject()));
+        });
     }
 }
