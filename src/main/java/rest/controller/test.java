@@ -221,7 +221,7 @@ public class test {
                 response.status(404);
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                                "POSTID_INVALID_FORMAT",
+                                "POSTID_INVALID",
                                 new JsonObject()));
             }
 
@@ -362,6 +362,52 @@ public class test {
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
                             "PUT_NOT_SUPPORTED",
                             new JsonObject()));
+        });
+
+        get("/users/:username/posts/:postID", (request, response) -> {
+            response.type("application/json");
+
+            String username = request.params(":username").trim().toLowerCase();
+            User user = userContainer.getUser(username);
+            if (user == null) {
+                response.status(404);
+                return new Gson()
+                        .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                                "USERNAME_NOT_FOUND",
+                                new JsonArray(),
+                                new JsonArray()));
+            }
+
+            String str_postID = request.params(":postID");
+            int postID = -1;
+            try {
+                postID = Integer.parseInt(str_postID);
+            } catch (NumberFormatException e) {
+                response.status(404);
+                return new Gson()
+                        .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                                "POSTID_INVALID",
+                                new JsonObject()));
+            }
+
+            Post post = postContainer.getPost(postID);
+            if (post == null) {
+                response.status(404);
+                JsonObject data = new JsonObject();
+                data.addProperty("postID", "");
+                return new Gson()
+                        .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                                "POSTID_NOT_FOUND",
+                                new JsonArray(),
+                                new JsonObject()));
+            } else {
+                response.status(200);
+                return new Gson()
+                        .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
+                                "",
+                                new JsonArray(),
+                                postContainer.getUserPosts(user)));
+            }
         });
     }
 }

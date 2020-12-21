@@ -190,7 +190,6 @@ public class PostContainer {
         JsonArray postsData = new JsonArray();
         String username = user.getUsername();
         Set<Integer> postIDs = userPosts.get(username);
-        System.out.println(postIDs);
         if (postIDs != null) {
             for (Integer postID : postIDs) {
                 Post post = posts.get(postID);
