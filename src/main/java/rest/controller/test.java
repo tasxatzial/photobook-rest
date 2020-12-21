@@ -255,5 +255,15 @@ public class test {
                                 new Gson().toJsonTree(post)));
             }
         });
+
+        put("/posts/:postID", (request, response) -> {
+            response.type("application/json");
+            response.status(405);
+
+            return new Gson()
+                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                            "PUT_NOT_SUPPORTED",
+                            new JsonObject()));
+        });
     }
 }
