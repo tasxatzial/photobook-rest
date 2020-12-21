@@ -85,6 +85,16 @@ public class test {
                             new JsonObject()));
         });
 
+        options("/users", (request, response) -> {
+            response.type("application/json");
+            response.status(200);
+            response.header("Allow", "GET,POST");
+            return new Gson()
+                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
+                            "",
+                            new JsonObject()));
+        });
+
         get("/users/:username", (request, response) -> {
             response.type("application/json");
 
@@ -170,6 +180,16 @@ public class test {
             }
         });
 
+        options("/users/:username", (request, response) -> {
+            response.type("application/json");
+            response.status(200);
+            response.header("Allow", "GET,PUT");
+            return new Gson()
+                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
+                            "",
+                            new JsonObject()));
+        });
+
         get("/posts", (request, response) -> {
             response.type("application/json");
             response.status(200);
@@ -210,6 +230,16 @@ public class test {
                             new JsonObject()));
         });
 
+        options("/posts", (request, response) -> {
+            response.type("application/json");
+            response.status(200);
+            response.header("Allow", "GET");
+            return new Gson()
+                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
+                            "",
+                            new JsonObject()));
+        });
+
         get("/posts/:postID", (request, response) -> {
             response.type("application/json");
 
@@ -218,7 +248,7 @@ public class test {
             try {
                 postID = Integer.parseInt(str_postID);
             } catch (NumberFormatException e) {
-                response.status(404);
+                response.status(400);
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
                                 "POSTID_INVALID",
@@ -272,6 +302,16 @@ public class test {
             return new Gson()
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
                             "PUT_NOT_SUPPORTED",
+                            new JsonObject()));
+        });
+
+        options("/posts/:postID", (request, response) -> {
+            response.type("application/json");
+            response.status(200);
+            response.header("Allow", "GET");
+            return new Gson()
+                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
+                            "",
                             new JsonObject()));
         });
 
@@ -364,6 +404,16 @@ public class test {
                             new JsonObject()));
         });
 
+        options("/users/:username/posts", (request, response) -> {
+            response.type("application/json");
+            response.status(200);
+            response.header("Allow", "GET,POST");
+            return new Gson()
+                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
+                            "",
+                            new JsonObject()));
+        });
+
         get("/users/:username/posts/:postID", (request, response) -> {
             response.type("application/json");
 
@@ -383,7 +433,7 @@ public class test {
             try {
                 postID = Integer.parseInt(str_postID);
             } catch (NumberFormatException e) {
-                response.status(404);
+                response.status(400);
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
                                 "POSTID_INVALID",
@@ -437,6 +487,16 @@ public class test {
             return new Gson()
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
                             "PUT_NOT_SUPPORTED",
+                            new JsonObject()));
+        });
+
+        options("/users/:username/posts/:postID", (request, response) -> {
+            response.type("application/json");
+            response.status(200);
+            response.header("Allow", "GET");
+            return new Gson()
+                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
+                            "",
                             new JsonObject()));
         });
     }
