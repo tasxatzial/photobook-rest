@@ -265,5 +265,15 @@ public class test {
                             "PUT_NOT_SUPPORTED",
                             new JsonObject()));
         });
+
+        delete("/posts/:postID", (request, response) -> {
+            response.type("application/json");
+            response.status(405);
+
+            return new Gson()
+                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                            "DELETE_NOT_SUPPORTED",
+                            new JsonObject()));
+        });
     }
 }
