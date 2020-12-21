@@ -27,7 +27,7 @@ public class test {
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                             "",
                             new JsonArray(),
-                            new Gson().toJsonTree(userContainer.getUsers())));
+                            userContainer.getUsers()));
         });
 
         post("/users", (request, response) -> {
@@ -40,8 +40,8 @@ public class test {
                 response.status(400);
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                                "Malformed request",
-                                new Gson().toJsonTree("")));
+                                "INVALID_REQUEST",
+                                new JsonObject()));
             }
 
             JsonObject invalidRequestProps = userContainer.checkUserFields(jsonRequest, "", false);
@@ -54,14 +54,14 @@ public class test {
                         toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                 "",
                                 UserContainer.getLinks(user),
-                                new Gson().toJsonTree(user)));
+                                new JsonObject()));
             } else {
                 response.status(400);
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                                "Wrong user parameters",
+                                "INVALID_PARAMETERS",
                                 new JsonArray(),
-                                new Gson().toJsonTree(invalidRequestProps)));
+                                invalidRequestProps));
             }
         });
 
@@ -71,8 +71,8 @@ public class test {
 
             return new Gson()
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                            "DELETE not supported",
-                            new Gson().toJsonTree("")));
+                            "DELETE_NOT_SUPPORTED",
+                            new JsonObject()));
         });
 
         put("/users", (request, response) -> {
@@ -81,8 +81,8 @@ public class test {
 
             return new Gson()
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                            "PUT not supported in container URIs",
-                            new Gson().toJsonTree("")));
+                            "PUT_NOT_SUPPORTED",
+                            new JsonObject()));
         });
 
         get("/users/:username", (request, response) -> {
@@ -95,21 +95,19 @@ public class test {
                 response.status(400);
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                                "Malformed request",
-                                new Gson().toJsonTree("")));
+                                "INVALID_REQUEST",
+                                new JsonObject()));
             }
 
             String username = request.params(":username").trim().toLowerCase();
             User user = userContainer.getUser(username);
             if (user == null) {
                 response.status(404);
-                JsonObject data = new JsonObject();
-                data.addProperty("username", username);
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                                "Username not found",
+                                "USERNAME_NOT_FOUND",
                                 new JsonArray(),
-                                new Gson().toJsonTree(data)));
+                                new JsonObject()));
             } else {
                 response.status(200);
                 return new Gson()
@@ -130,20 +128,18 @@ public class test {
                 response.status(400);
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                                "Malformed request",
-                                new Gson().toJsonTree("")));
+                                "INVALID_REQUEST",
+                                new JsonObject()));
             }
 
             String username = request.params(":username").trim().toLowerCase();
             if (!userContainer.usernameExists(username)) {
                 response.status(404);
-                JsonObject data = new JsonObject();
-                data.addProperty("username", username);
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                                "Username not found",
+                                "USERNAME_NOT_FOUND",
                                 new JsonArray(),
-                                new Gson().toJsonTree(data)));
+                                new JsonObject()));
             } else {
                 JsonObject invalidRequestProps = userContainer.checkUserFields(jsonRequest, username, true);
                 if (invalidRequestProps.size() == 0) {
@@ -154,13 +150,13 @@ public class test {
                             toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                     "",
                                     UserContainer.getLinks(user),
-                                    new Gson().toJsonTree(user)));
+                                    new JsonObject()));
                 } else {
                     response.status(400);
                     return new Gson()
                             .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                                    "Wrong user parameters",
-                                    new Gson().toJsonTree(invalidRequestProps)));
+                                    "INVALID_PARAMETERS",
+                                    invalidRequestProps));
                 }
             }
         });
@@ -171,8 +167,8 @@ public class test {
 
             return new Gson()
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                            "POST not supported in non container URIs",
-                            new Gson().toJsonTree("")));
+                            "POST_NOT_SUPPORTED",
+                            new JsonObject()));
         });
 
         delete("/users/:username", (request, response) -> {
@@ -181,8 +177,8 @@ public class test {
 
             return new Gson()
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                            "DELETE not supported",
-                            new Gson().toJsonTree("")));
+                            "DELETE_NOT_SUPPORTED",
+                            new JsonObject()));
         });
 
         post("/posts", (request, response) -> {
@@ -191,8 +187,8 @@ public class test {
 
             return new Gson()
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                            "POST not supported",
-                            new Gson().toJsonTree("")));
+                            "POST_NOT_SUPPORTED",
+                            new JsonObject()));
         });
 
         delete("/posts", (request, response) -> {
@@ -201,8 +197,8 @@ public class test {
 
             return new Gson()
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                            "DELETE not supported",
-                            new Gson().toJsonTree("")));
+                            "DELETE_NOT_SUPPORTED",
+                            new JsonObject()));
         });
 
         put("/posts", (request, response) -> {
@@ -211,8 +207,8 @@ public class test {
 
             return new Gson()
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                            "PUT not supported in container URIs",
-                            new Gson().toJsonTree("")));
+                            "PUT_NOT_SUPPORTED",
+                            new JsonObject()));
         });
 
         get("/posts", (request, response) -> {
@@ -222,22 +218,11 @@ public class test {
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                             "",
                             new JsonArray(),
-                            new Gson().toJsonTree(postContainer.getPosts())));
+                            postContainer.getPosts()));
         });
 
         get("/posts/:postID", (request, response) -> {
             response.type("application/json");
-
-            JsonObject jsonRequest = null;
-            try {
-                jsonRequest = JsonParser.parseString(request.body()).getAsJsonObject();
-            } catch (JsonSyntaxException e) {
-                response.status(400);
-                return new Gson()
-                        .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                                "Malformed request",
-                                new Gson().toJsonTree("")));
-            }
 
             String str_postID = request.params(":postID");
             int postID = -1;
@@ -245,24 +230,22 @@ public class test {
                 postID = Integer.parseInt(str_postID);
             } catch (NumberFormatException e) {
                 response.status(404);
-                JsonObject data = new JsonObject();
-                data.addProperty("postID", str_postID);
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                                "Invalid post ID format",
-                                new Gson().toJsonTree(data)));
+                                "POSTID_INVALID_FORMAT",
+                                new JsonObject()));
             }
 
             Post post = postContainer.getPost(postID);
             if (post == null) {
                 response.status(404);
                 JsonObject data = new JsonObject();
-                data.addProperty("postID", postID);
+                data.addProperty("postID", "");
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                                "Post ID not found",
+                                "POSTID_NOT_FOUND",
                                 new JsonArray(),
-                                new Gson().toJsonTree(data)));
+                                new JsonObject()));
             } else {
                 response.status(200);
                 return new Gson()
