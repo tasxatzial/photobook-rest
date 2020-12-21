@@ -88,17 +88,6 @@ public class test {
         get("/users/:username", (request, response) -> {
             response.type("application/json");
 
-            JsonObject jsonRequest = null;
-            try {
-                jsonRequest = JsonParser.parseString(request.body()).getAsJsonObject();
-            } catch (JsonSyntaxException e) {
-                response.status(400);
-                return new Gson()
-                        .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                                "INVALID_REQUEST",
-                                new JsonObject()));
-            }
-
             String username = request.params(":username").trim().toLowerCase();
             User user = userContainer.getUser(username);
             if (user == null) {
@@ -284,6 +273,28 @@ public class test {
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
                             "POST_NOT_SUPPORTED",
                             new JsonObject()));
+        });
+
+        get("/users/:username/posts", (request, response) -> {
+            response.type("application/json");
+
+            String username = request.params(":username").trim().toLowerCase();
+            User user = userContainer.getUser(username);
+            if (user == null) {
+                response.status(404);
+                return new Gson()
+                        .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                                "USERNAME_NOT_FOUND",
+                                new JsonArray(),
+                                new JsonArray()));
+            } else {
+                response.status(200);
+                return new Gson()
+                        .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
+                                "",
+                                new JsonArray(),
+                                postContainer.getUserPosts(user)));
+            }
         });
     }
 }

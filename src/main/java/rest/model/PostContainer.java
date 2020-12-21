@@ -84,4 +84,25 @@ public class PostContainer {
 
         return postsData;
     }
+
+    public JsonArray getUserPosts(User user) {
+        JsonArray postsData = new JsonArray();
+        String username = user.getUsername();
+        Set<Integer> postIDs = userPosts.get(username);
+        if (postIDs == null) {
+            return postsData;
+        } else {
+            for (Integer postID : postIDs) {
+                Post post = posts.get(postID);
+
+                JsonObject data = new JsonObject();
+                data.addProperty("postID", postID);
+                data.add("links", getLinks(post));
+
+                postsData.add(data);
+            }
+        }
+
+        return postsData;
+    }
 }
