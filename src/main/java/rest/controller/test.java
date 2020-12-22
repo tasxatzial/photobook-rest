@@ -6,7 +6,6 @@ import rest.model.PostContainer;
 import rest.model.User;
 import rest.model.UserContainer;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import static spark.Spark.delete;
@@ -466,8 +465,8 @@ public class test {
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                 "",
-                                new JsonArray(),
-                                postContainer.getUserPosts(user)));
+                                PostContainer.getLinks(post),
+                                new Gson().toJsonTree(post)));
             }
         });
 
