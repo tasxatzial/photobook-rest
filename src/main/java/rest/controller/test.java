@@ -46,7 +46,7 @@ public class test {
             JsonObject jsonRequest = null;
             try {
                 jsonRequest = JsonParser.parseString(request.body()).getAsJsonObject();
-            } catch (JsonSyntaxException e) {
+            } catch (JsonSyntaxException | IllegalStateException e) {
                 response.status(400);
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
@@ -153,7 +153,7 @@ public class test {
             JsonObject jsonRequest = null;
             try {
                 jsonRequest = JsonParser.parseString(request.body()).getAsJsonObject();
-            } catch (JsonSyntaxException e) {
+            } catch (JsonSyntaxException | IllegalStateException e) {
                 response.status(400);
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
@@ -353,7 +353,7 @@ public class test {
             JsonObject jsonRequest = null;
             try {
                 jsonRequest = JsonParser.parseString(request.body()).getAsJsonObject();
-            } catch (JsonSyntaxException e) {
+            } catch (JsonSyntaxException | IllegalStateException e) {
                 response.status(400);
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
