@@ -30,6 +30,11 @@ public class UserContainer {
         emails.add(user.getEmail());
     }
 
+    public void deleteUser(User user) {
+        users.remove(user.getUsername());
+        emails.remove(user.getEmail());
+    }
+
     public JsonObject checkUserFields(JsonObject requestJson, String paramsUsername, boolean userUpdate) {
         JsonObject invalidRequestProps = new JsonObject();
 

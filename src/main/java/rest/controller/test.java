@@ -139,12 +139,26 @@ public class test {
 
         delete("/users/:username", (request, response) -> {
             response.type("application/json");
-            response.status(405);
 
-            return new Gson()
-                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                            "DELETE_NOT_SUPPORTED",
-                            new JsonObject()));
+            String username = request.params(":username").trim().toLowerCase();
+            if (!userContainer.usernameExists(username)) {
+                response.status(404);
+                return new Gson()
+                        .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                                "USERNAME_NOT_FOUND",
+                                new JsonArray(),
+                                new JsonObject()));
+            } else {
+                response.status(200);
+                User user = userContainer.getUser(username);
+                postContainer.deleteUserPosts(user);
+                userContainer.deleteUser(user);
+                return new Gson()
+                        .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
+                                "",
+                                new JsonArray(),
+                                new JsonObject()));
+            }
         });
 
         put("/users/:username", (request, response) -> {

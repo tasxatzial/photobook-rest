@@ -13,7 +13,7 @@ public class PostContainer {
     String[] postPropNames;
     int lastPostID;
     Map<Integer, Post> posts = new HashMap<>();
-    Map<String, Set<Integer>> userPosts = new HashMap<>();
+    Map<String, Set<Integer>> usernamePosts = new HashMap<>();
 
     public PostContainer() {
         postPropNames = new String[] {
@@ -75,11 +75,10 @@ public class PostContainer {
             invalidRequestProps.addProperty("imageURL", "INVALID_PATTERN");
         } else if (requestJson.get("imageURL") == null && requestJson.get("imageBase64") != null && !validImageBase64) {
             invalidRequestProps.addProperty("imageBase64", "INVALID_PATTERN");
-        } else if (requestJson.get("imageBase64") != null && requestJson.get("imageURL") != null) {
-            if (!validImageURL && !validImageBase64) {
-                invalidRequestProps.addProperty("imageBase64", "INVALID_PATTERN");
-                invalidRequestProps.addProperty("imageURL", "INVALID_PATTERN");
-            }
+        } else if (requestJson.get("imageBase64") != null && requestJson.get("imageURL") != null &&
+                !validImageURL && !validImageBase64) {
+            invalidRequestProps.addProperty("imageBase64", "INVALID_PATTERN");
+            invalidRequestProps.addProperty("imageURL", "INVALID_PATTERN");
         }
 
         return invalidRequestProps;
@@ -138,11 +137,11 @@ public class PostContainer {
     public void addPost(Post post) {
         int postID = generatePostID(post);
         String username = post.getUsername();
-        Set<Integer> postIDs = userPosts.get(username);
+        Set<Integer> postIDs = usernamePosts.get(username);
         if (postIDs == null) {
             postIDs = new HashSet<>();
             postIDs.add(postID);
-            userPosts.put(username, postIDs);
+            usernamePosts.put(username, postIDs);
         } else {
             postIDs.add(postID);
         }
@@ -189,7 +188,7 @@ public class PostContainer {
     public JsonArray getUserPosts(User user) {
         JsonArray postsData = new JsonArray();
         String username = user.getUsername();
-        Set<Integer> postIDs = userPosts.get(username);
+        Set<Integer> postIDs = usernamePosts.get(username);
         if (postIDs != null) {
             for (Integer postID : postIDs) {
                 Post post = posts.get(postID);
@@ -203,5 +202,16 @@ public class PostContainer {
         }
 
         return postsData;
+    }
+
+    public void deleteUserPosts(User user) {
+        String username = user.getUsername();
+        Set<Integer> postIDs = usernamePosts.get(username);
+        if (postIDs != null) {
+            for (Integer postID : postIDs) {
+                posts.remove(postID);
+            }
+            usernamePosts.remove(username);
+        }
     }
 }
