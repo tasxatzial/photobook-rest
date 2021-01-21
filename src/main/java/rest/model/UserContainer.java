@@ -135,13 +135,10 @@ public class UserContainer {
     public static JsonArray getLinks(User user) {
         String username = user.getUsername();
 
-        JsonArray resources = new JsonArray();
-        resources.add("users/" + username);
-
         JsonObject self = new JsonObject();
         self.addProperty("rel", "self");
-        self.add("resource", resources);
-
+        self.addProperty("resource", "users/" + username);
+        
         JsonObject posts = new JsonObject();
         posts.addProperty("rel", "posts");
         posts.addProperty("resource", "users/" + username + "/posts");

@@ -160,16 +160,17 @@ public class PostContainer {
     public static JsonArray getLinks(Post post) {
         int postID = post.getPostID();
 
-        JsonArray resources = new JsonArray();
-        resources.add("posts/" + postID);
-        resources.add("users/" + post.getUsername() + "/posts/" + postID);
+        JsonObject self0 = new JsonObject();
+        self0.addProperty("rel", "self");
+        self0.addProperty("resource", "posts/" + postID);
 
-        JsonObject self = new JsonObject();
-        self.addProperty("rel", "self");
-        self.add("resource", resources);
+        JsonObject self1 = new JsonObject();
+        self1.addProperty("rel", "self");
+        self1.addProperty("resource", "users/" + post.getUsername() + "/posts/" + postID);
 
         JsonArray links = new JsonArray();
-        links.add(self);
+        links.add(self0);
+        links.add(self1);
         return links;
     }
 

@@ -32,6 +32,7 @@ public class test {
 
         get("/users", (request, response) -> {
             response.type("application/json");
+            System.out.println(request.attributes());
             response.status(200);
             return new Gson()
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
