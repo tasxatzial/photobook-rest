@@ -134,6 +134,14 @@ public class PostContainer {
         return posts.get(postID);
     }
 
+    public void deletePost(Post post) {
+        String username = post.getUsername();
+        int postID = post.getPostID();
+        Set<Integer> postIDs = usernamePosts.get(username);
+        postIDs.remove(postID);
+        posts.remove(postID);
+    }
+
     public void addPost(Post post) {
         int postID = generatePostID(post);
         String username = post.getUsername();

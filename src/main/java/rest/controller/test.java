@@ -207,7 +207,7 @@ public class test {
         options("/users/:username", (request, response) -> {
             response.type("application/json");
             response.status(200);
-            response.header("Allow", "GET,PUT");
+            response.header("Allow", "GET,PUT,DELETE");
             return new Gson()
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                             "",
@@ -383,7 +383,7 @@ public class test {
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
                                 "USERNAME_NOT_FOUND",
                                 new JsonArray(),
-                                new JsonArray()));
+                                new JsonObject()));
             } else {
                 JsonObject invalidRequestProps = postContainer.checkPostFields(jsonRequest);
                 if (invalidRequestProps.size() == 0) {
@@ -449,7 +449,7 @@ public class test {
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
                                 "USERNAME_NOT_FOUND",
                                 new JsonArray(),
-                                new JsonArray()));
+                                new JsonObject()));
             }
 
             String str_postID = request.params(":postID");
@@ -496,12 +496,49 @@ public class test {
 
         delete("/users/:username/posts/:postID", (request, response) -> {
             response.type("application/json");
-            response.status(405);
 
-            return new Gson()
-                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                            "DELETE_NOT_SUPPORTED",
-                            new JsonObject()));
+            String username = request.params(":username").trim().toLowerCase();
+            User user = userContainer.getUser(username);
+            if (user == null) {
+                response.status(404);
+                return new Gson()
+                        .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                                "USERNAME_NOT_FOUND",
+                                new JsonArray(),
+                                new JsonObject()));
+            }
+
+            String str_postID = request.params(":postID");
+            int postID = -1;
+            try {
+                postID = Integer.parseInt(str_postID);
+            } catch (NumberFormatException e) {
+                response.status(400);
+                return new Gson()
+                        .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                                "POSTID_INVALID",
+                                new JsonObject()));
+            }
+
+            Post post = postContainer.getPost(postID);
+            if (post == null) {
+                response.status(404);
+                JsonObject data = new JsonObject();
+                data.addProperty("postID", "");
+                return new Gson()
+                        .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                                "POSTID_NOT_FOUND",
+                                new JsonArray(),
+                                new JsonObject()));
+            } else {
+                response.status(200);
+                postContainer.deletePost(post);
+                return new Gson()
+                        .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
+                                "",
+                                new JsonArray(),
+                                new JsonObject()));
+            }
         });
 
         put("/users/:username/posts/:postID", (request, response) -> {
@@ -517,7 +554,7 @@ public class test {
         options("/users/:username/posts/:postID", (request, response) -> {
             response.type("application/json");
             response.status(200);
-            response.header("Allow", "GET");
+            response.header("Allow", "GET,DELETE");
             return new Gson()
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                             "",
