@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -12,12 +11,13 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class UserContainer {
-    Map<String, User> users = new HashMap<>();
-    Set<String> emails = new HashSet<>();
-    String[] userPropNames;
-    Countries countries = new Countries();
+    private Map<String, User> usernames = new HashMap<>();
+    private List<User> users = new ArrayList<>();
+    private Set<String> emails = new HashSet<>();
+    private static String[] userPropNames;
+    private Countries countries = new Countries();
 
-    public UserContainer() throws IOException {
+    static {
         userPropNames = new String[] {
                 "username", "password", "passwordConfirm", "email",
                 "firstName", "lastName", "birthDate", "country", "city",
@@ -25,17 +25,27 @@ public class UserContainer {
         };
     }
 
+    public UserContainer() throws IOException { }
+
     public void addUser(User user) {
-        users.put(user.getUsername(), user);
+        usernames.put(user.getUsername(), user);
+        users.add(user);
         emails.add(user.getEmail());
     }
 
     public void deleteUser(User user) {
-        users.remove(user.getUsername());
+        String username = user.getUsername();
+        usernames.remove(username);
         emails.remove(user.getEmail());
+        for (int i = 0; i < users.size(); i++) {
+            if (users.get(i).getUsername().equals(username)) {
+                users.remove(i);
+                break;
+            }
+        }
     }
 
-    public JsonObject checkUserFields(JsonObject requestJson, String paramsUsername, boolean userUpdate) {
+    public JsonObject checkUserFields(JsonObject requestJson, String usernameParameter, boolean userUpdate) {
         JsonObject invalidRequestProps = new JsonObject();
 
         for (int i = 0; i < userPropNames.length; i++) {
@@ -49,7 +59,7 @@ public class UserContainer {
                 case "username":
                     if (userUpdate) {
                         String requestUsername = parseRequestProp(requestJson.get("username")).trim().toLowerCase();
-                        if (!requestUsername.equals(paramsUsername)) {
+                        if (!requestUsername.equals(usernameParameter)) {
                             invalidRequestProps.addProperty("username", "MODIFY_FORBIDDEN");
                             return invalidRequestProps;
                         }
@@ -67,8 +77,8 @@ public class UserContainer {
                     boolean skipEmailCheck = false;
                     if (userUpdate) {
                         String requestUsername = parseRequestProp(requestJson.get("username")).trim().toLowerCase();
-                        if (requestUsername.equals(paramsUsername)) {
-                            String oldEmail = users.get(requestUsername).getEmail();
+                        if (requestUsername.equals(usernameParameter)) {
+                            String oldEmail = usernames.get(requestUsername).getEmail();
                             if (oldEmail.equals(parsedRequestProp)) {
                                 skipEmailCheck = true;
                             }
@@ -138,15 +148,27 @@ public class UserContainer {
         JsonObject self = new JsonObject();
         self.addProperty("rel", "self");
         self.addProperty("resource", "users/" + username);
-        
-        JsonObject posts = new JsonObject();
-        posts.addProperty("rel", "posts");
-        posts.addProperty("resource", "users/" + username + "/posts");
+
+        JsonObject posts = getPostsLinks(username);
 
         JsonArray links = new JsonArray();
         links.add(self);
         links.add(posts);
         return links;
+    }
+
+    public static JsonArray getPostsLinks(User user) {
+        JsonObject posts = getPostsLinks(user.getUsername());
+        JsonArray links = new JsonArray();
+        links.add(posts);
+        return links;
+    }
+
+    private static JsonObject getPostsLinks(String username) {
+        JsonObject posts = new JsonObject();
+        posts.addProperty("rel", "posts");
+        posts.addProperty("resource", "users/" + username + "/posts");
+        return posts;
     }
 
     public static String getMainLink(User user) {
@@ -158,12 +180,12 @@ public class UserContainer {
     }
 
     public User getUser(String username) {
-        return users.get(username);
+        return usernames.get(username);
     }
 
-    public JsonArray getUsers() {
+    public JsonArray getUsers(int page) {
         JsonArray usersData = new JsonArray();
-        for (Map.Entry<String, User> pair : users.entrySet()) {
+        for (Map.Entry<String, User> pair : usernames.entrySet()) {
             String username = pair.getKey();
             User user = pair.getValue();
 
@@ -177,8 +199,14 @@ public class UserContainer {
         return usersData;
     }
 
+    public JsonArray getLinks(int page) {
+        JsonArray links = new JsonArray();
+
+        return links;
+    }
+
     public boolean usernameExists(String username) {
-        return users.containsKey(username);
+        return usernames.containsKey(username);
     }
 
     public boolean emailExists(String email) {

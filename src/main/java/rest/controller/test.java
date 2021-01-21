@@ -32,13 +32,20 @@ public class test {
 
         get("/users", (request, response) -> {
             response.type("application/json");
-            System.out.println(request.attributes());
+            String pageParam = request.queryParams("offset");
+            int page = -1;
+            if (pageParam != null) {
+                try {
+                    page = Integer.parseInt(pageParam);
+                } catch (NumberFormatException ignored) { }
+            }
+
             response.status(200);
             return new Gson()
                     .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                             "",
-                            new JsonArray(),
-                            userContainer.getUsers()));
+                            userContainer.getLinks(page),
+                            userContainer.getUsers(page)));
         });
 
         post("/users", (request, response) -> {
@@ -123,7 +130,7 @@ public class test {
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                 "",
-                                UserContainer.getLinks(user),
+                                UserContainer.getPostsLinks(user),
                                 new Gson().toJsonTree(user)));
             }
         });
@@ -193,7 +200,7 @@ public class test {
                     return new Gson().
                             toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                     "",
-                                    UserContainer.getLinks(user),
+                                    UserContainer.getPostsLinks(user),
                                     new JsonObject()));
                 } else {
                     response.status(400);
@@ -295,7 +302,7 @@ public class test {
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                 "",
-                                PostContainer.getLinks(post),
+                                PostContainer.getNamedLinks(post),
                                 new Gson().toJsonTree(post)));
             }
         });
@@ -480,7 +487,7 @@ public class test {
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                 "",
-                                PostContainer.getLinks(post),
+                                PostContainer.getIDLinks(post),
                                 new Gson().toJsonTree(post)));
             }
         });

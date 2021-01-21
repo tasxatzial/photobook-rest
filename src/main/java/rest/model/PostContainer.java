@@ -10,12 +10,12 @@ import java.util.Map;
 import java.util.Set;
 
 public class PostContainer {
-    String[] postPropNames;
-    int lastPostID;
-    Map<Integer, Post> posts = new HashMap<>();
-    Map<String, Set<Integer>> usernamePosts = new HashMap<>();
+    private static String[] postPropNames;
+    private int lastPostID;
+    private Map<Integer, Post> posts = new HashMap<>();
+    private Map<String, Set<Integer>> usernamePosts = new HashMap<>();
 
-    public PostContainer() {
+    static {
         postPropNames = new String[] {
                 "description", "resourceURL", "imageURL", "imageBase64", "latitude", "longitude"
         };
@@ -69,7 +69,6 @@ public class PostContainer {
                     break;
             }
         }
-
 
         if (requestJson.get("imageBase64") == null && requestJson.get("imageURL") != null && !validImageURL) {
             invalidRequestProps.addProperty("imageURL", "INVALID_PATTERN");
@@ -159,19 +158,43 @@ public class PostContainer {
 
     public static JsonArray getLinks(Post post) {
         int postID = post.getPostID();
-
-        JsonObject self0 = new JsonObject();
-        self0.addProperty("rel", "self");
-        self0.addProperty("resource", "posts/" + postID);
-
-        JsonObject self1 = new JsonObject();
-        self1.addProperty("rel", "self");
-        self1.addProperty("resource", "users/" + post.getUsername() + "/posts/" + postID);
+        JsonObject self0 = getIDLinks(postID);
+        JsonObject self1 = getNamedLinks(postID, post.getUsername());
 
         JsonArray links = new JsonArray();
         links.add(self0);
         links.add(self1);
         return links;
+    }
+
+    public static JsonArray getIDLinks(Post post) {
+        JsonObject self = getIDLinks(post.getPostID());
+
+        JsonArray links = new JsonArray();
+        links.add(self);
+        return links;
+    }
+
+    public static JsonArray getNamedLinks(Post post) {
+        JsonObject self = getNamedLinks(post.getPostID(), post.getUsername());
+
+        JsonArray links = new JsonArray();
+        links.add(self);
+        return links;
+    }
+
+    private static JsonObject getIDLinks(int postID) {
+        JsonObject self = new JsonObject();
+        self.addProperty("rel", "self");
+        self.addProperty("resource", "posts/" + postID);;
+        return self;
+    }
+
+    private static JsonObject getNamedLinks(int postID, String username) {
+        JsonObject self = new JsonObject();
+        self.addProperty("rel", "self");
+        self.addProperty("resource", "users/" + username + "/posts/" + postID);
+        return self;
     }
 
     public static String getMainLink(Post post) {
