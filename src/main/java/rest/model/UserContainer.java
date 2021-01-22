@@ -11,14 +11,15 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class UserContainer {
-    private Map<String, User> usernames = new HashMap<>();
-    private List<User> users = new ArrayList<>();
-    private Set<String> emails = new HashSet<>();
-    private static String[] userPropNames;
-    private Countries countries = new Countries();
+    private Map<String, User> _usernames = new HashMap<>();
+    private List<User> _users = new ArrayList<>();
+    private Set<String> _emails = new HashSet<>();
+    private static String[] _userPropNames;
+    private Countries _countries = new Countries();
+    private final int _usersPerPage = 2;
 
     static {
-        userPropNames = new String[] {
+        _userPropNames = new String[] {
                 "username", "password", "passwordConfirm", "email",
                 "firstName", "lastName", "birthDate", "country", "city",
                 "address", "job", "gender", "interests", "about"
@@ -28,34 +29,38 @@ public class UserContainer {
     public UserContainer() throws IOException { }
 
     public void addUser(User user) {
-        usernames.put(user.getUsername(), user);
-        users.add(user);
-        emails.add(user.getEmail());
+        _usernames.put(user.getUsername(), user);
+        _users.add(user);
+        _emails.add(user.getEmail());
     }
 
     public void deleteUser(User user) {
         String username = user.getUsername();
-        usernames.remove(username);
-        emails.remove(user.getEmail());
-        for (int i = 0; i < users.size(); i++) {
-            if (users.get(i).getUsername().equals(username)) {
-                users.remove(i);
+        _usernames.remove(username);
+        _emails.remove(user.getEmail());
+        for (int i = 0; i < _users.size(); i++) {
+            if (_users.get(i).getUsername().equals(username)) {
+                _users.remove(i);
                 break;
             }
         }
     }
 
+    public User getUser(String username) {
+        return _usernames.get(username);
+    }
+
     public JsonObject checkUserFields(JsonObject requestJson, String usernameParameter, boolean userUpdate) {
         JsonObject invalidRequestProps = new JsonObject();
 
-        for (int i = 0; i < userPropNames.length; i++) {
-            JsonElement requestProp = requestJson.get(userPropNames[i]);
+        for (int i = 0; i < _userPropNames.length; i++) {
+            JsonElement requestProp = requestJson.get(_userPropNames[i]);
             if (requestProp == null) {
-                invalidRequestProps.addProperty(userPropNames[i], "MISSING_VALUE");
+                invalidRequestProps.addProperty(_userPropNames[i], "MISSING_VALUE");
                 continue;
             }
             String parsedRequestProp = parseRequestProp(requestProp);
-            switch (userPropNames[i]) {
+            switch (_userPropNames[i]) {
                 case "username":
                     if (userUpdate) {
                         String requestUsername = parseRequestProp(requestJson.get("username")).trim().toLowerCase();
@@ -78,7 +83,7 @@ public class UserContainer {
                     if (userUpdate) {
                         String requestUsername = parseRequestProp(requestJson.get("username")).trim().toLowerCase();
                         if (requestUsername.equals(usernameParameter)) {
-                            String oldEmail = usernames.get(requestUsername).getEmail();
+                            String oldEmail = _usernames.get(requestUsername).getEmail();
                             if (oldEmail.equals(parsedRequestProp)) {
                                 skipEmailCheck = true;
                             }
@@ -122,24 +127,48 @@ public class UserContainer {
                 case "gender":
                     parsedRequestProp = parsedRequestProp.trim();
                     if (!parsedRequestProp.matches(getRegexPattern("gender"))) {
-                        invalidRequestProps.addProperty(userPropNames[i], "INVALID_PATTERN");
+                        invalidRequestProps.addProperty(_userPropNames[i], "INVALID_PATTERN");
                     }
                     break;
                 case "country":
                     parsedRequestProp = parsedRequestProp.trim().toUpperCase();
-                    if (!countries.containsCountry(parsedRequestProp)) {
-                        invalidRequestProps.addProperty(userPropNames[i], "INVALID_CODE");
+                    if (!_countries.containsCountry(parsedRequestProp)) {
+                        invalidRequestProps.addProperty(_userPropNames[i], "INVALID_CODE");
                     }
                     break;
                 default:
-                    if (!parsedRequestProp.matches(getRegexPattern(userPropNames[i]))) {
-                        invalidRequestProps.addProperty(userPropNames[i], "INVALID_PATTERN");
+                    if (!parsedRequestProp.matches(getRegexPattern(_userPropNames[i]))) {
+                        invalidRequestProps.addProperty(_userPropNames[i], "INVALID_PATTERN");
                     }
                     break;
             }
         }
 
         return invalidRequestProps;
+    }
+
+    public String parseRequestProp(JsonElement el) {
+        return el.toString().substring(1, el.toString().length() - 1);
+    }
+
+    public int getFirstPage() {
+        return 1;
+    }
+
+    public int getLastPage() {
+        return _users.size() / _usersPerPage + 1;
+    }
+
+    private String getFirstPageLink() {
+        return "users?page=" + getFirstPage();
+    }
+
+    private String getLastPageLink() {
+        return "users?page=" + getLastPage();
+    }
+
+    public static String getLink(User user) {
+        return "users/" + user.getUsername();
     }
 
     public static JsonArray getLinks(User user) {
@@ -149,7 +178,9 @@ public class UserContainer {
         self.addProperty("rel", "self");
         self.addProperty("resource", "users/" + username);
 
-        JsonObject posts = getPostsLinks(username);
+        JsonObject posts = new JsonObject();
+        posts.addProperty("rel", "posts");
+        posts.addProperty("resource", PostContainer.getPostsLink(user));
 
         JsonArray links = new JsonArray();
         links.add(self);
@@ -157,60 +188,91 @@ public class UserContainer {
         return links;
     }
 
-    public static JsonArray getPostsLinks(User user) {
-        JsonObject posts = getPostsLinks(user.getUsername());
+    private JsonArray getUsers(int start, int end) {
+        JsonArray users = new JsonArray();
+        for (int i = start; i <= end; i++) {
+            User user = _users.get(i);
+
+            JsonObject data = new JsonObject();
+            data.addProperty("username", user.getUsername());
+            data.add("links", getLinks(user));
+
+            users.add(data);
+        }
+
+        return users;
+    }
+
+    public JsonArray get_users() {
+        int startUser = 0;
+        int endUser = _users.size() - 1;
+        return getUsers(startUser, endUser);
+    }
+
+    public JsonArray getPage(int page) {
+        int startUser = (page - 1) * _usersPerPage;
+        int endUser = Math.min(startUser + _usersPerPage - 1, _users.size() - 1);
+        return getUsers(startUser, endUser);
+    }
+
+    public JsonArray getPageDefaultLinks() {
+        JsonObject first = new JsonObject();
+        first.addProperty("rel", "first");
+        first.addProperty("resource", getFirstPageLink());
+
+        JsonObject last = new JsonObject();
+        last.addProperty("rel", "last");
+        last.addProperty("resource", getLastPageLink());
+
         JsonArray links = new JsonArray();
-        links.add(posts);
+        links.add(first);
+        links.add(last);
         return links;
     }
 
-    private static JsonObject getPostsLinks(String username) {
-        JsonObject posts = new JsonObject();
-        posts.addProperty("rel", "posts");
-        posts.addProperty("resource", "users/" + username + "/posts");
-        return posts;
-    }
-
-    public static String getMainLink(User user) {
-        return "users/" + user.getUsername();
-    }
-
-    public String parseRequestProp(JsonElement el) {
-        return el.toString().substring(1, el.toString().length() - 1);
-    }
-
-    public User getUser(String username) {
-        return usernames.get(username);
-    }
-
-    public JsonArray getUsers(int page) {
-        JsonArray usersData = new JsonArray();
-        for (Map.Entry<String, User> pair : usernames.entrySet()) {
-            String username = pair.getKey();
-            User user = pair.getValue();
-
-            JsonObject data = new JsonObject();
-            data.addProperty("username", username);
-            data.add("links", getLinks(user));
-
-            usersData.add(data);
-        }
-
-        return usersData;
-    }
-
-    public JsonArray getLinks(int page) {
+    public JsonArray getPageLinks(int page) {
         JsonArray links = new JsonArray();
 
+        JsonObject first = new JsonObject();
+        int firstPage = getFirstPage();
+        first.addProperty("rel", "first");
+        first.addProperty("resource", getFirstPageLink());
+
+        JsonObject last = new JsonObject();
+        int lastPage = getLastPage();
+        last.addProperty("rel", "last");
+        last.addProperty("resource", getLastPageLink());
+
+        JsonObject prev = new JsonObject();
+        prev.addProperty("rel", "prev");
+
+        JsonObject next = new JsonObject();
+        next.addProperty("rel", "next");
+
+        if (page <= firstPage || lastPage == 1) {
+            prev.addProperty("resource", "");
+        } else {
+            prev.addProperty("resource", "users?page=" + (page - 1));
+        }
+        if (page >= lastPage || firstPage == lastPage) {
+            next.addProperty("resource", "");
+        } else {
+            next.addProperty("resource", "users?page=" + (page + 1));
+        }
+
+        links.add(first);
+        links.add(last);
+        links.add(prev);
+        links.add(next);
         return links;
     }
 
     public boolean usernameExists(String username) {
-        return usernames.containsKey(username);
+        return _usernames.containsKey(username);
     }
 
     public boolean emailExists(String email) {
-        return emails.contains(email);
+        return _emails.contains(email);
     }
 
     /**

@@ -10,20 +10,58 @@ import java.util.Map;
 import java.util.Set;
 
 public class PostContainer {
-    private static String[] postPropNames;
-    private int lastPostID;
-    private Map<Integer, Post> posts = new HashMap<>();
-    private Map<String, Set<Integer>> usernamePosts = new HashMap<>();
+    private static String[] _postPropNames;
+    private int _lastPostID;
+    private Map<Integer, Post> _posts = new HashMap<>();
+    private Map<String, Set<Integer>> _usernamePosts = new HashMap<>();
 
     static {
-        postPropNames = new String[] {
+        _postPropNames = new String[] {
                 "description", "resourceURL", "imageURL", "imageBase64", "latitude", "longitude"
         };
     }
 
-    private int generatePostID(Post post) {
-        post.setPostID(++lastPostID);
-        return lastPostID;
+    public void addPost(Post post) {
+        int postID = generateID(post);
+        String username = post.getUsername();
+        Set<Integer> postIDs = _usernamePosts.get(username);
+        if (postIDs == null) {
+            postIDs = new HashSet<>();
+            postIDs.add(postID);
+            _usernamePosts.put(username, postIDs);
+        } else {
+            postIDs.add(postID);
+        }
+
+        _posts.put(post.getPostID(), post);
+    }
+
+    public void deletePost(Post post) {
+        String username = post.getUsername();
+        int postID = post.getPostID();
+        Set<Integer> postIDs = _usernamePosts.get(username);
+        postIDs.remove(postID);
+        _posts.remove(postID);
+    }
+
+    public Post getPost(int postID) {
+        return _posts.get(postID);
+    }
+
+    public void deletePosts(User user) {
+        String username = user.getUsername();
+        Set<Integer> postIDs = _usernamePosts.get(username);
+        if (postIDs != null) {
+            for (Integer postID : postIDs) {
+                _posts.remove(postID);
+            }
+            _usernamePosts.remove(username);
+        }
+    }
+
+    private int generateID(Post post) {
+        post.setPostID(++_lastPostID);
+        return _lastPostID;
     }
 
     public JsonObject checkPostFields(JsonObject requestJson) {
@@ -31,14 +69,14 @@ public class PostContainer {
         boolean validImageURL = false;
         boolean validImageBase64 = false;
 
-        for (int i = 0; i < postPropNames.length; i++) {
-            JsonElement requestProp = requestJson.get(postPropNames[i]);
+        for (int i = 0; i < _postPropNames.length; i++) {
+            JsonElement requestProp = requestJson.get(_postPropNames[i]);
             if (requestProp == null) {
-                invalidRequestProps.addProperty(postPropNames[i], "MISSING_VALUE");
+                invalidRequestProps.addProperty(_postPropNames[i], "MISSING_VALUE");
                 continue;
             }
             String parsedRequestProp = parseRequestProp(requestProp);
-            switch (postPropNames[i]) {
+            switch (_postPropNames[i]) {
                 case "description":
                     if (!isValidDescription(parsedRequestProp)) {
                         invalidRequestProps.addProperty("description", "INVALID_PATTERN");
@@ -83,6 +121,103 @@ public class PostContainer {
         return invalidRequestProps;
     }
 
+    private String parseRequestProp(JsonElement el) {
+        return el.toString().substring(1, el.toString().length() - 1);
+    }
+
+    private static String getUsernameIDLink(Post post) {
+        return "users/" + post.getUsername() + "/posts/" + post.getPostID();
+    }
+
+    private static String getIDLink(Post post) {
+        return "posts/" + post.getPostID();
+    }
+
+    public static String getPostsLink(User user) {
+        return "users/" + user.getUsername() + "/posts";
+    }
+
+    public static JsonArray getUsernameIDLinks(Post post) {
+        JsonObject self = new JsonObject();
+        self.addProperty("rel", "self");
+        self.addProperty("resource", getUsernameIDLink(post));
+
+        JsonArray links = new JsonArray();
+        links.add(self);
+        return links;
+    }
+
+    public static JsonArray getIDLinks(Post post) {
+        JsonObject self = new JsonObject();
+        self.addProperty("rel", "self");
+        self.addProperty("resource", getIDLink(post));
+
+        JsonArray links = new JsonArray();
+        links.add(self);
+        return links;
+    }
+
+    public static JsonArray getPostsLinks(User user) {
+        JsonArray links = new JsonArray();
+
+        JsonObject posts = new JsonObject();
+        posts.addProperty("rel", "posts");
+        posts.addProperty("resource", getPostsLink(user));
+
+        links.add(posts);
+        return links;
+    }
+
+    public static JsonArray getLinks(Post post) {
+        JsonObject self0 = new JsonObject();
+        self0.addProperty("rel", "self");
+        self0.addProperty("resource", getIDLink(post));
+
+        JsonObject self1 = new JsonObject();
+        self1.addProperty("rel", "self");
+        self1.addProperty("resource", getUsernameIDLink(post));
+
+        JsonArray links = new JsonArray();
+        links.add(self0);
+        links.add(self1);
+        return links;
+    }
+
+    public JsonArray get_posts() {
+        JsonArray posts = new JsonArray();
+        for (Map.Entry<Integer, Post> pair : _posts.entrySet()) {
+            int postID = pair.getKey();
+            Post post = pair.getValue();
+
+            JsonObject data = new JsonObject();
+            data.addProperty("postID", postID);
+            data.add("links", getLinks(post));
+
+            posts.add(data);
+        }
+
+        return posts;
+    }
+
+    public JsonArray getUserPosts(User user) {
+        JsonArray postsData = new JsonArray();
+        String username = user.getUsername();
+        Set<Integer> postIDs = _usernamePosts.get(username);
+        if (postIDs != null) {
+            for (Integer postID : postIDs) {
+                Post post = _posts.get(postID);
+
+                JsonObject data = new JsonObject();
+                data.addProperty("postID", postID);
+                data.add("links", getLinks(post));
+
+                postsData.add(data);
+            }
+        }
+
+        return postsData;
+    }
+
     private boolean isValidDescription(String description) {
         return !description.trim().equals("");
     }
@@ -122,128 +257,6 @@ public class PostContainer {
             return (f_value < 180 && f_value > -180);
         } else {
             return false;
-        }
-    }
-
-    private String parseRequestProp(JsonElement el) {
-        return el.toString().substring(1, el.toString().length() - 1);
-    }
-
-    public Post getPost(int postID) {
-        return posts.get(postID);
-    }
-
-    public void deletePost(Post post) {
-        String username = post.getUsername();
-        int postID = post.getPostID();
-        Set<Integer> postIDs = usernamePosts.get(username);
-        postIDs.remove(postID);
-        posts.remove(postID);
-    }
-
-    public void addPost(Post post) {
-        int postID = generatePostID(post);
-        String username = post.getUsername();
-        Set<Integer> postIDs = usernamePosts.get(username);
-        if (postIDs == null) {
-            postIDs = new HashSet<>();
-            postIDs.add(postID);
-            usernamePosts.put(username, postIDs);
-        } else {
-            postIDs.add(postID);
-        }
-
-        posts.put(post.getPostID(), post);
-    }
-
-    public static JsonArray getLinks(Post post) {
-        int postID = post.getPostID();
-        JsonObject self0 = getIDLinks(postID);
-        JsonObject self1 = getNamedLinks(postID, post.getUsername());
-
-        JsonArray links = new JsonArray();
-        links.add(self0);
-        links.add(self1);
-        return links;
-    }
-
-    public static JsonArray getIDLinks(Post post) {
-        JsonObject self = getIDLinks(post.getPostID());
-
-        JsonArray links = new JsonArray();
-        links.add(self);
-        return links;
-    }
-
-    public static JsonArray getNamedLinks(Post post) {
-        JsonObject self = getNamedLinks(post.getPostID(), post.getUsername());
-
-        JsonArray links = new JsonArray();
-        links.add(self);
-        return links;
-    }
-
-    private static JsonObject getIDLinks(int postID) {
-        JsonObject self = new JsonObject();
-        self.addProperty("rel", "self");
-        self.addProperty("resource", "posts/" + postID);;
-        return self;
-    }
-
-    private static JsonObject getNamedLinks(int postID, String username) {
-        JsonObject self = new JsonObject();
-        self.addProperty("rel", "self");
-        self.addProperty("resource", "users/" + username + "/posts/" + postID);
-        return self;
-    }
-
-    public static String getMainLink(Post post) {
-        return "users/" + post.getUsername() + "/posts/" + post.getPostID();
-    }
-
-    public JsonArray getPosts() {
-        JsonArray postsData = new JsonArray();
-        for (Map.Entry<Integer, Post> pair : posts.entrySet()) {
-            int postID = pair.getKey();
-            Post post = pair.getValue();
-
-            JsonObject data = new JsonObject();
-            data.addProperty("postID", postID);
-            data.add("links", getLinks(post));
-
-            postsData.add(data);
-        }
-
-        return postsData;
-    }
-
-    public JsonArray getUserPosts(User user) {
-        JsonArray postsData = new JsonArray();
-        String username = user.getUsername();
-        Set<Integer> postIDs = usernamePosts.get(username);
-        if (postIDs != null) {
-            for (Integer postID : postIDs) {
-                Post post = posts.get(postID);
-
-                JsonObject data = new JsonObject();
-                data.addProperty("postID", postID);
-                data.add("links", getLinks(post));
-
-                postsData.add(data);
-            }
-        }
-
-        return postsData;
-    }
-
-    public void deleteUserPosts(User user) {
-        String username = user.getUsername();
-        Set<Integer> postIDs = usernamePosts.get(username);
-        if (postIDs != null) {
-            for (Integer postID : postIDs) {
-                posts.remove(postID);
-            }
-            usernamePosts.remove(username);
         }
     }
 }
