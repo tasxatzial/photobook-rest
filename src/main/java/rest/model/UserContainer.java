@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class UserContainer {
-    private Map<String, User> _usernames = new HashMap<>();
+    private final Map<String, User> _usernames = new HashMap<>();
     private final List<User> _users = new ArrayList<>();
     private final Set<String> _emails = new HashSet<>();
     private static final String[] _userPropNames;
@@ -197,10 +197,12 @@ public class UserContainer {
         for (int i = start; i <= end; i++) {
             User user = _users.get(i);
 
-            JsonObject data = new JsonObject();
-            data.addProperty("username", user.getUsername());
-            data.add("links", getLinks(user));
+            JsonObject userData = new JsonObject();
+            userData.addProperty("username", user.getUsername());
 
+            JsonObject data = new JsonObject();
+            data.add("links", getLinks(user));
+            data.add("data", userData);
             users.add(data);
         }
 

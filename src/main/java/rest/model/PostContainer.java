@@ -1,6 +1,5 @@
 package rest.model;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -247,47 +246,18 @@ public class PostContainer {
         return links;
     }
 
-    private JsonArray getPosts(int start, int end) {
-        JsonArray posts = new JsonArray();
-        for (int i = start; i <= end; i++) {
-            Post post = _posts.get(i);
-
-            JsonObject data = new JsonObject();
-            data.add("links", getLinks(post));
-            data.add("data", new Gson().toJsonTree(post));
-
-            posts.add(data);
-        }
-
-        return posts;
-    }
-
-    private JsonArray getUserPosts(int start, int end, User user) {
-        JsonArray posts = new JsonArray();
-        List<Post> userPosts = _userPosts.get(user.getUsername());
-        for (int i = start; i <= end; i++) {
-            Post post = userPosts.get(i);
-
-            JsonObject data = new JsonObject();
-            data.add("links", getLinks(post));
-            data.add("data", new Gson().toJsonTree(post));
-
-            posts.add(data);
-        }
-
-        return posts;
-    }
-
     public JsonArray getPosts() {
         JsonArray posts = new JsonArray();
         for (Map.Entry<Integer, Post> pair : _postsIDs.entrySet()) {
             int postID = pair.getKey();
             Post post = pair.getValue();
 
-            JsonObject data = new JsonObject();
-            data.addProperty("postID", postID);
-            data.add("links", getLinks(post));
+            JsonObject postData = new JsonObject();
+            postData.addProperty("postID", postID);
 
+            JsonObject data = new JsonObject();
+            data.add("links", getLinks(post));
+            data.add("data", postData);
             posts.add(data);
         }
 
@@ -300,10 +270,12 @@ public class PostContainer {
         List<Post> userPosts = _userPosts.get(username);
         if (userPosts != null) {
             for (Post userPost : userPosts) {
-                JsonObject data = new JsonObject();
-                data.addProperty("postID", userPost.getPostID());
-                data.add("links", getLinks(userPost));
+                JsonObject postData = new JsonObject();
+                postData.addProperty("postID", userPost.getPostID());
 
+                JsonObject data = new JsonObject();
+                data.add("links", getLinks(userPost));
+                data.add("data", postData);
                 postsData.add(data);
             }
         }
@@ -314,14 +286,40 @@ public class PostContainer {
     public JsonArray getPage(int page) {
         int startPost = (page - 1) * _postsPerPage;
         int endPost = Math.min(startPost + _postsPerPage - 1, _posts.size() - 1);
-        return getPosts(startPost, endPost);
+        JsonArray posts = new JsonArray();
+        for (int i = startPost; i <= endPost; i++) {
+            Post post = _posts.get(i);
+
+            JsonObject postData = new JsonObject();
+            postData.addProperty("data", post.getPostID());
+
+            JsonObject data = new JsonObject();
+            data.add("links", getLinks(post));
+            data.add("data", postData);
+            posts.add(data);
+        }
+
+        return posts;
     }
 
     public JsonArray getUserPage(int page, User user) {
         List<Post> userPosts = _userPosts.get(user.getUsername());
         int startPost = (page - 1) * _postsPerPage;
         int endPost = Math.min(startPost + _postsPerPage - 1, userPosts.size() - 1);
-        return getUserPosts(startPost, endPost, user);
+        JsonArray posts = new JsonArray();
+        for (int i = startPost; i <= endPost; i++) {
+            Post post = userPosts.get(i);
+
+            JsonObject postData = new JsonObject();
+            postData.addProperty("data", post.getPostID());
+
+            JsonObject data = new JsonObject();
+            data.add("links", getLinks(post));
+            data.add("data", postData);
+            posts.add(data);
+        }
+
+        return posts;
     }
 
     public JsonArray getPageDefaultLinks() {
