@@ -184,7 +184,7 @@ public class UserContainer {
 
         JsonObject posts = new JsonObject();
         posts.addProperty("rel", "posts");
-        posts.addProperty("resource", PostContainer.getPostsLink(user));
+        posts.addProperty("resource", PostContainer.getUserPostsLink(user));
 
         JsonArray links = new JsonArray();
         links.add(self);

@@ -151,7 +151,7 @@ public class test {
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                 "",
-                                PostContainer.getPostsLinks(user),
+                                PostContainer.getUserPostsLinks(user),
                                 new Gson().toJsonTree(user)));
             }
         });
@@ -221,7 +221,7 @@ public class test {
                     return new Gson().
                             toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                     "",
-                                    PostContainer.getPostsLinks(user),
+                                    PostContainer.getUserPostsLinks(user),
                                     new JsonObject()));
                 } else {
                     response.status(400);
@@ -352,7 +352,7 @@ public class test {
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                 "",
-                                PostContainer.getUsernameIDLinks(post),
+                                PostContainer.getUserPostLinks(post),
                                 new Gson().toJsonTree(post)));
             }
         });
@@ -400,6 +400,7 @@ public class test {
         get("/users/:username/posts", (request, response) -> {
             response.type("application/json");
 
+
             String username = request.params(":username").trim().toLowerCase();
             User user = userContainer.getUser(username);
             if (user == null) {
@@ -409,6 +410,34 @@ public class test {
                                 "USERNAME_NOT_FOUND",
                                 new JsonArray(),
                                 new JsonArray()));
+            }
+            String pageParam = request.queryParams("page");
+            if (pageParam != null) {
+                int page = 0;
+                try {
+                    page = Integer.parseInt(pageParam);
+                } catch (NumberFormatException ignored) {
+                    response.status(400);
+                    return new Gson()
+                            .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                                    "INVALID_REQUEST",
+                                    new JsonObject()));
+                }
+                if (page < postContainer.getUserFirstPage() || page > postContainer.getUserLastPage(user)) {
+                    response.status(400);
+                    return new Gson()
+                            .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                                    "PAGE_NOT_FOUND",
+                                    postContainer.getUserPageDefaultLinks(user),
+                                    new JsonArray()));
+                } else {
+                    response.status(200);
+                    return new Gson()
+                            .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
+                                    "",
+                                    postContainer.getUserPageLinks(page, user),
+                                    postContainer.getUserPage(page, user)));
+                }
             } else {
                 response.status(200);
                 return new Gson()
@@ -449,7 +478,7 @@ public class test {
                     Post post = new Gson().fromJson(request.body(), Post.class);
                     post.setUsername(username);
                     postContainer.addPost(post);
-                    response.header("Location", "http://127.0.0.1:5677/" + PostContainer.getUsernameIDLinks(post));
+                    response.header("Location", "http://127.0.0.1:5677/" + PostContainer.getUserPostLinks(post));
                     return new Gson().
                             toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                     "",
@@ -537,7 +566,7 @@ public class test {
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                 "",
-                                PostContainer.getIDLinks(post),
+                                PostContainer.getPostIDLinks(post),
                                 new Gson().toJsonTree(post)));
             }
         });
