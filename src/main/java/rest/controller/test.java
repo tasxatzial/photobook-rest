@@ -37,12 +37,18 @@ public class test {
                 int page = 0;
                 try {
                     page = Integer.parseInt(pageParam);
-                } catch (NumberFormatException ignored) { }
-                if (page < userContainer.getFirstPage() || page > userContainer.getLastPage()) {
+                } catch (NumberFormatException ignored) {
                     response.status(400);
                     return new Gson()
                             .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
-                                    "INVALID_PAGE",
+                                    "INVALID_REQUEST",
+                                    new JsonObject()));
+                }
+                if (page < userContainer.getFirstPage() || page > userContainer.getLastPage()) {
+                    response.status(404);
+                    return new Gson()
+                            .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                                    "PAGE_NOT_FOUND",
                                     userContainer.getPageDefaultLinks(),
                                     new JsonArray()));
                 } else {
@@ -59,7 +65,7 @@ public class test {
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                 "",
                                 new JsonArray(),
-                                userContainer.get_users()));
+                                userContainer.getUsers()));
             }
         });
 
@@ -239,12 +245,41 @@ public class test {
 
         get("/posts", (request, response) -> {
             response.type("application/json");
-            response.status(200);
-            return new Gson()
-                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
-                            "",
-                            new JsonArray(),
-                            postContainer.get_posts()));
+            String pageParam = request.queryParams("page");
+            if (pageParam != null) {
+                int page = 0;
+                try {
+                    page = Integer.parseInt(pageParam);
+                } catch (NumberFormatException ignored) {
+                    response.status(400);
+                    return new Gson()
+                            .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                                    "INVALID_REQUEST",
+                                    new JsonObject()));
+                }
+                if (page < postContainer.getFirstPage() || page > postContainer.getLastPage()) {
+                    response.status(400);
+                    return new Gson()
+                            .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
+                                    "PAGE_NOT_FOUND",
+                                    postContainer.getPageDefaultLinks(),
+                                    new JsonArray()));
+                } else {
+                    response.status(200);
+                    return new Gson()
+                            .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
+                                    "",
+                                    postContainer.getPageLinks(page),
+                                    postContainer.getPage(page)));
+                }
+            } else {
+                response.status(200);
+                return new Gson()
+                        .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
+                                "",
+                                new JsonArray(),
+                                postContainer.getPosts()));
+            }
         });
 
         post("/posts", (request, response) -> {

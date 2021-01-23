@@ -12,10 +12,10 @@ import java.util.*;
 
 public class UserContainer {
     private Map<String, User> _usernames = new HashMap<>();
-    private List<User> _users = new ArrayList<>();
-    private Set<String> _emails = new HashSet<>();
-    private static String[] _userPropNames;
-    private Countries _countries = new Countries();
+    private final List<User> _users = new ArrayList<>();
+    private final Set<String> _emails = new HashSet<>();
+    private static final String[] _userPropNames;
+    private final Countries _countries = new Countries();
     private final int _usersPerPage = 2;
 
     static {
@@ -160,11 +160,15 @@ public class UserContainer {
     }
 
     private String getFirstPageLink() {
-        return "users?page=" + getFirstPage();
+        return getPageLink(getFirstPage());
     }
 
     private String getLastPageLink() {
-        return "users?page=" + getLastPage();
+        return getPageLink(getLastPage());
+    }
+
+    private String getPageLink(int page) {
+        return "users?page=" + page;
     }
 
     public static String getLink(User user) {
@@ -203,7 +207,7 @@ public class UserContainer {
         return users;
     }
 
-    public JsonArray get_users() {
+    public JsonArray getUsers() {
         int startUser = 0;
         int endUser = _users.size() - 1;
         return getUsers(startUser, endUser);
@@ -252,12 +256,12 @@ public class UserContainer {
         if (page <= firstPage || lastPage == 1) {
             prev.addProperty("resource", "");
         } else {
-            prev.addProperty("resource", "users?page=" + (page - 1));
+            prev.addProperty("resource", getPageLink(page - 1));
         }
         if (page >= lastPage || firstPage == lastPage) {
             next.addProperty("resource", "");
         } else {
-            next.addProperty("resource", "users?page=" + (page + 1));
+            next.addProperty("resource", getPageLink(page + 1));
         }
 
         links.add(first);
