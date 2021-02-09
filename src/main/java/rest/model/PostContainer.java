@@ -291,7 +291,7 @@ public class PostContainer {
             Post post = _posts.get(i);
 
             JsonObject postData = new JsonObject();
-            postData.addProperty("data", post.getPostID());
+            postData.addProperty("postID", post.getPostID());
 
             JsonObject data = new JsonObject();
             data.add("links", getLinks(post));
@@ -311,7 +311,7 @@ public class PostContainer {
             Post post = userPosts.get(i);
 
             JsonObject postData = new JsonObject();
-            postData.addProperty("data", post.getPostID());
+            postData.addProperty("postID", post.getPostID());
 
             JsonObject data = new JsonObject();
             data.add("links", getLinks(post));
