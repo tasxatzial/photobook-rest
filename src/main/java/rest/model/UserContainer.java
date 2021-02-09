@@ -29,6 +29,8 @@ public class UserContainer {
     public UserContainer() throws IOException { }
 
     public void addUser(User user) {
+        user.setLink("users/" + user.getUsername());
+        user.init();
         _usernames.put(user.getUsername(), user);
         _users.add(user);
         _emails.add(user.getEmail());
@@ -171,20 +173,14 @@ public class UserContainer {
         return "users?page=" + page;
     }
 
-    public static String getLink(User user) {
-        return "users/" + user.getUsername();
-    }
-
     public static JsonArray getLinks(User user) {
-        String username = user.getUsername();
-
         JsonObject self = new JsonObject();
         self.addProperty("rel", "self");
-        self.addProperty("resource", "users/" + username);
+        self.addProperty("resource", user.getLink());
 
         JsonObject posts = new JsonObject();
         posts.addProperty("rel", "posts");
-        posts.addProperty("resource", PostContainer.getUserPostsLink(user));
+        posts.addProperty("resource", user.getPostsLink());
 
         JsonArray links = new JsonArray();
         links.add(self);
@@ -223,11 +219,11 @@ public class UserContainer {
 
     public JsonArray getPageDefaultLinks() {
         JsonObject first = new JsonObject();
-        first.addProperty("rel", "first");
+        first.addProperty("rel", "first_page");
         first.addProperty("resource", getFirstPageLink());
 
         JsonObject last = new JsonObject();
-        last.addProperty("rel", "last");
+        last.addProperty("rel", "last_page");
         last.addProperty("resource", getLastPageLink());
 
         JsonArray links = new JsonArray();
@@ -241,19 +237,19 @@ public class UserContainer {
 
         JsonObject first = new JsonObject();
         int firstPage = getFirstPage();
-        first.addProperty("rel", "first");
+        first.addProperty("rel", "first_page");
         first.addProperty("resource", getFirstPageLink());
 
         JsonObject last = new JsonObject();
         int lastPage = getLastPage();
-        last.addProperty("rel", "last");
+        last.addProperty("rel", "last_page");
         last.addProperty("resource", getLastPageLink());
 
         JsonObject prev = new JsonObject();
-        prev.addProperty("rel", "prev");
+        prev.addProperty("rel", "prev_page");
 
         JsonObject next = new JsonObject();
-        next.addProperty("rel", "next");
+        next.addProperty("rel", "next_page");
 
         if (page <= firstPage || lastPage == 1) {
             prev.addProperty("resource", "");
@@ -281,11 +277,6 @@ public class UserContainer {
         return _emails.contains(email);
     }
 
-    /**
-     * Checks whether the specified date conforms to the format yyyy-MM-dd.
-     * @param date
-     * @return
-     */
     private boolean isValidDate(String date) {
         DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         sdf.setLenient(false);
@@ -297,11 +288,6 @@ public class UserContainer {
         return true;
     }
 
-    /**
-     * Returns the regex pattern for the specified field request parameter.
-     * @param field
-     * @return
-     */
     private String getRegexPattern(String field) {
         switch(field) {
             case "username":

@@ -64,7 +64,7 @@ public class test {
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                 "",
-                                new JsonArray(),
+                                userContainer.getPageDefaultLinks(),
                                 userContainer.getUsers()));
             }
         });
@@ -87,7 +87,7 @@ public class test {
             if (invalidRequestProps.size() == 0) {
                 response.status(201);
                 User user = new Gson().fromJson(request.body(), User.class);
-                response.header("Location", "http://127.0.0.1:5677/" + UserContainer.getLink(user));
+                response.header("Location", "http://127.0.0.1:5677/" + user.getLink());
                 userContainer.addUser(user);
                 return new Gson().
                         toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
@@ -151,8 +151,8 @@ public class test {
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                 "",
-                                PostContainer.getUserPostsLinks(user),
-                                new Gson().toJsonTree(user)));
+                                user.getLinks(),
+                                user.getData()));
             }
         });
 
@@ -221,7 +221,7 @@ public class test {
                     return new Gson().
                             toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                     "",
-                                    PostContainer.getUserPostsLinks(user),
+                                    new JsonArray(),
                                     new JsonObject()));
                 } else {
                     response.status(400);

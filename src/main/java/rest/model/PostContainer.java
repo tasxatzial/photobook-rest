@@ -220,17 +220,6 @@ public class PostContainer {
         return links;
     }
 
-    public static JsonArray getUserPostsLinks(User user) {
-        JsonArray links = new JsonArray();
-
-        JsonObject posts = new JsonObject();
-        posts.addProperty("rel", "posts");
-        posts.addProperty("resource", getUserPostsLink(user));
-
-        links.add(posts);
-        return links;
-    }
-
     public static JsonArray getLinks(Post post) {
         JsonObject self0 = new JsonObject();
         self0.addProperty("rel", "self");
@@ -264,6 +253,7 @@ public class PostContainer {
         return posts;
     }
 
+    /* move to user */
     public JsonArray getUserPosts(User user) {
         JsonArray postsData = new JsonArray();
         String username = user.getUsername();
@@ -302,6 +292,7 @@ public class PostContainer {
         return posts;
     }
 
+    /* move to posts */
     public JsonArray getUserPage(int page, User user) {
         List<Post> userPosts = _userPosts.get(user.getUsername());
         int startPost = (page - 1) * _postsPerPage;
