@@ -24,6 +24,10 @@ public class PostContainer {
         _link = "/posts";
     }
 
+    public String getLink() {
+        return _link;
+    }
+
     public void addPost(Post post, User user) {
         int postID = setPostID(post);
         user.getPostsContainer().addPost(post);

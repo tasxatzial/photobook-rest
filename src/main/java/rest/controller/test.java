@@ -1,10 +1,7 @@
 package rest.controller;
 
 import com.google.gson.*;
-import rest.model.Post;
-import rest.model.PostContainer;
-import rest.model.User;
-import rest.model.UserContainer;
+import rest.model.*;
 
 import java.io.IOException;
 
@@ -16,12 +13,15 @@ import static spark.Spark.post;
 import static spark.Spark.put;
 
 public class test {
+    private static RootContainer rootContainer;
     private static UserContainer userContainer;
-    private static final PostContainer postContainer = new PostContainer();
+    private static PostContainer postContainer;
 
     static {
         try {
-            userContainer = new UserContainer();
+            rootContainer = new RootContainer();
+            postContainer = rootContainer.getPostContainer();
+            userContainer = rootContainer.getUserContainer();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -31,7 +31,13 @@ public class test {
         port(5677);
 
         get("/", (request, response) -> {
-            return null;
+            response.type("application/json");
+            response.status(200);
+            return new Gson()
+                    .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
+                            "",
+                            rootContainer.getLink(),
+                            new JsonObject()));
         });
 
         get("/users", (request, response) -> {
