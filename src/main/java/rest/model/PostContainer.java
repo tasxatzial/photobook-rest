@@ -7,44 +7,33 @@ import com.google.gson.JsonObject;
 import java.util.*;
 
 public class PostContainer {
-    private static final String[] _postPropNames;
+    private static final String[] _postProps;
     private final List<Post> _posts = new ArrayList<>();
     private int _lastPostID;
     private final Map<Integer, Post> _postsIDs = new HashMap<>();
-    private final Map<String, List<Post>> _userPosts = new HashMap<>();
+    private final String _link;
     private final int _postsPerPage = 2;
 
     static {
-        _postPropNames = new String[] {
+        _postProps = new String[] {
                 "description", "resourceURL", "imageURL", "imageBase64", "latitude", "longitude"
         };
     }
 
-    public void addPost(Post post) {
-        int postID = generatePostID(post);
-        String username = post.getUsername();
-        List<Post> userPosts = _userPosts.get(username);
-        if (userPosts == null) {
-            userPosts = new ArrayList<>();
-            userPosts.add(post);
-            _userPosts.put(username, userPosts);
-        } else {
-            userPosts.add(post);
-        }
-
-        _posts.add(post);
-        _postsIDs.put(postID, post);
+    public PostContainer() {
+        _link = "/posts";
     }
 
-    public void deletePost(Post post) {
-        String username = post.getUsername();
-        List<Post> userPosts = _userPosts.get(username);
-        for (int i = 0; i < userPosts.size(); i++) {
-            if (userPosts.get(i) == post) {
-                userPosts.remove(i);
-                break;
-            }
-        }
+    public void addPost(Post post, User user) {
+        int postID = setPostID(post);
+        user.getPostsContainer().addPost(post);
+        _posts.add(post);
+        _postsIDs.put(postID, post);
+        post.setLink(_link + "/" + post.getPostID());
+    }
+
+    public void deletePost(Post post, User user) {
+        user.getPostsContainer().deletePost(post);
         _postsIDs.remove(post.getPostID());
         for (int i = 0; i < _posts.size(); i++) {
             if (_posts.get(i) == post) {
@@ -54,28 +43,25 @@ public class PostContainer {
         }
     }
 
+    public void deletePosts(User user) {
+        List<Post> posts = user.getPostsContainer().getPostsList();
+        for (int i = 0; i < posts.size(); i++) {
+            _postsIDs.remove(posts.get(i).getPostID());
+            for (int j = 0; j < _posts.size(); j++) {
+                if (_posts.get(j) == posts.get(i)) {
+                    _posts.remove(j);
+                    break;
+                }
+            }
+        }
+        user.getPostsContainer().deletePosts();
+    }
+
     public Post getPost(int postID) {
         return _postsIDs.get(postID);
     }
 
-    public void deletePosts(User user) {
-        String username = user.getUsername();
-        List<Post> userPosts = _userPosts.get(username);
-        if (userPosts != null) {
-            for (Post userPost : userPosts) {
-                _postsIDs.remove(userPost.getPostID());
-                for (int i = 0; i < _posts.size(); i++) {
-                    if (_posts.get(i) == userPost) {
-                        _posts.remove(i);
-                        break;
-                    }
-                }
-            }
-            _userPosts.remove(username);
-        }
-    }
-
-    private int generatePostID(Post post) {
+    private int setPostID(Post post) {
         post.setPostID(++_lastPostID);
         return _lastPostID;
     }
@@ -85,14 +71,14 @@ public class PostContainer {
         boolean validImageURL = false;
         boolean validImageBase64 = false;
 
-        for (int i = 0; i < _postPropNames.length; i++) {
-            JsonElement requestProp = requestJson.get(_postPropNames[i]);
+        for (int i = 0; i < _postProps.length; i++) {
+            JsonElement requestProp = requestJson.get(_postProps[i]);
             if (requestProp == null) {
-                invalidRequestProps.addProperty(_postPropNames[i], "MISSING_VALUE");
+                invalidRequestProps.addProperty(_postProps[i], "MISSING_VALUE");
                 continue;
             }
             String parsedRequestProp = parseRequestProp(requestProp);
-            switch (_postPropNames[i]) {
+            switch (_postProps[i]) {
                 case "description":
                     if (!isValidDescription(parsedRequestProp)) {
                         invalidRequestProps.addProperty("description", "INVALID_PATTERN");
@@ -145,10 +131,6 @@ public class PostContainer {
         return 1;
     }
 
-    public int getUserFirstPage() {
-        return 1;
-    }
-
     public int getLastPage() {
         if (_posts.size() % _postsPerPage == 0) {
             return Math.max(_posts.size() / _postsPerPage, 1);
@@ -156,78 +138,49 @@ public class PostContainer {
         return _posts.size() / _postsPerPage + 1;
     }
 
-    public int getUserLastPage(User user) {
-        List<Post> userPosts = _userPosts.get(user.getUsername());
-        if (userPosts.size() % _postsPerPage == 0) {
-            return Math.max(userPosts.size() / _postsPerPage, 1);
-        }
-        return userPosts.size() / _postsPerPage + 1;
-    }
-
     private String getFirstPageLink() {
         return getPageLink(getFirstPage());
-    }
-
-    private String getUserFirstPageLink(User user) {
-        return getUserPageLink(getUserFirstPage(), user);
     }
 
     private String getLastPageLink() {
         return getPageLink(getLastPage());
     }
 
-    private String getUserLastPageLink(User user) {
-        return getUserPageLink(getUserLastPage(user), user);
+    private String getPageLink(int page) {
+        return _link + "?page=" + page;
     }
 
-    private static String getPageLink(int page) {
-        return "posts?page=" + page;
-    }
-
-    private static String getUserPageLink(int page, User user) {
-        return getUserPostsLink(user) + "?page=" + page;
-    }
-
-    private static String getUserPostLink(Post post) {
-        return "users/" + post.getUsername() + "/posts/" + post.getPostID();
-    }
-
-    private static String getPostLink(Post post) {
-        return "posts/" + post.getPostID();
-    }
-
-    public static String getUserPostsLink(User user) {
-        return "users/" + user.getUsername() + "/posts";
-    }
-
-    public static JsonArray getUserPostLinks(Post post) {
+    public static JsonArray getIDLink(Post post) {
         JsonObject self = new JsonObject();
         self.addProperty("rel", "self");
-        self.addProperty("resource", getUserPostLink(post));
+        self.addProperty("resource", post.getLink());
 
         JsonArray links = new JsonArray();
         links.add(self);
         return links;
     }
 
-    public static JsonArray getPostIDLinks(Post post) {
-        JsonObject self = new JsonObject();
-        self.addProperty("rel", "self");
-        self.addProperty("resource", getPostLink(post));
+    public static JsonObject getData(Post post) {
+        JsonObject data = new JsonObject();
+        data.addProperty("postID", post.getPostID());
+        data.addProperty("description", post.getDescription());
+        data.addProperty("resourceURL", post.getResourceURL());
+        data.addProperty("imageURL", post.getImageURL());
+        data.addProperty("imageBase64", post.getImageBase64());
+        data.addProperty("latitude", post.getLatitude());
+        data.addProperty("longitude", post.getLongitude());
 
-        JsonArray links = new JsonArray();
-        links.add(self);
-        return links;
+        return data;
     }
 
     public static JsonArray getLinks(Post post) {
         JsonObject self0 = new JsonObject();
         self0.addProperty("rel", "self");
-        self0.addProperty("resource", getPostLink(post));
+        self0.addProperty("resource", post.getLink());
 
         JsonObject self1 = new JsonObject();
         self1.addProperty("rel", "self");
-        self1.addProperty("resource", getUserPostLink(post));
+        self1.addProperty("resource", post.getUserLink());
 
         JsonArray links = new JsonArray();
         links.add(self0);
@@ -235,49 +188,9 @@ public class PostContainer {
         return links;
     }
 
-    public JsonArray getPosts() {
+    private JsonArray getPosts(int start, int end) {
         JsonArray posts = new JsonArray();
-        for (Map.Entry<Integer, Post> pair : _postsIDs.entrySet()) {
-            int postID = pair.getKey();
-            Post post = pair.getValue();
-
-            JsonObject postData = new JsonObject();
-            postData.addProperty("postID", postID);
-
-            JsonObject data = new JsonObject();
-            data.add("links", getLinks(post));
-            data.add("data", postData);
-            posts.add(data);
-        }
-
-        return posts;
-    }
-
-    /* move to user */
-    public JsonArray getUserPosts(User user) {
-        JsonArray postsData = new JsonArray();
-        String username = user.getUsername();
-        List<Post> userPosts = _userPosts.get(username);
-        if (userPosts != null) {
-            for (Post userPost : userPosts) {
-                JsonObject postData = new JsonObject();
-                postData.addProperty("postID", userPost.getPostID());
-
-                JsonObject data = new JsonObject();
-                data.add("links", getLinks(userPost));
-                data.add("data", postData);
-                postsData.add(data);
-            }
-        }
-
-        return postsData;
-    }
-
-    public JsonArray getPage(int page) {
-        int startPost = (page - 1) * _postsPerPage;
-        int endPost = Math.min(startPost + _postsPerPage - 1, _posts.size() - 1);
-        JsonArray posts = new JsonArray();
-        for (int i = startPost; i <= endPost; i++) {
+        for (int i = start; i <= end; i++) {
             Post post = _posts.get(i);
 
             JsonObject postData = new JsonObject();
@@ -292,50 +205,54 @@ public class PostContainer {
         return posts;
     }
 
-    /* move to posts */
-    public JsonArray getUserPage(int page, User user) {
-        List<Post> userPosts = _userPosts.get(user.getUsername());
+    public JsonArray getPage(int page) {
         int startPost = (page - 1) * _postsPerPage;
-        int endPost = Math.min(startPost + _postsPerPage - 1, userPosts.size() - 1);
-        JsonArray posts = new JsonArray();
-        for (int i = startPost; i <= endPost; i++) {
-            Post post = userPosts.get(i);
+        int endPost = Math.min(startPost + _postsPerPage - 1, _posts.size() - 1);
+        return getPosts(startPost, endPost);
+    }
 
-            JsonObject postData = new JsonObject();
-            postData.addProperty("postID", post.getPostID());
+    public JsonArray getPosts() {
+        int startPost = 0;
+        int endPost = _posts.size() - 1;
+        return getPosts(startPost, endPost);
+    }
 
-            JsonObject data = new JsonObject();
-            data.add("links", getLinks(post));
-            data.add("data", postData);
-            posts.add(data);
-        }
+    public int getUserFirstPage(User user) {
+        return user.getPostsContainer().getFirstPage();
+    }
 
-        return posts;
+    public int getUserLastPage(User user) {
+        return user.getPostsContainer().getLastPage();
+    }
+
+    public JsonArray getUserPageDefaultLinks(User user) {
+        return user.getPostsContainer().getPageDefaultLinks();
+    }
+
+    public JsonArray getUserPageLinks(int page, User user) {
+        return user.getPostsContainer().getPageLinks(page);
+    }
+
+    public JsonArray getUserPage(int page, User user) {
+        return user.getPostsContainer().getPage(page);
+    }
+
+    public JsonArray getUserPosts(User user) {
+        return user.getPostsContainer().getPosts();
+    }
+
+    public static JsonArray getUserLinks(Post post) {
+        return UserPostContainer.getUserLinks(post);
     }
 
     public JsonArray getPageDefaultLinks() {
         JsonObject first = new JsonObject();
-        first.addProperty("rel", "first");
+        first.addProperty("rel", "first_page");
         first.addProperty("resource", getFirstPageLink());
 
         JsonObject last = new JsonObject();
-        last.addProperty("rel", "last");
+        last.addProperty("rel", "last_page");
         last.addProperty("resource", getLastPageLink());
-
-        JsonArray links = new JsonArray();
-        links.add(first);
-        links.add(last);
-        return links;
-    }
-
-    public JsonArray getUserPageDefaultLinks(User user) {
-        JsonObject first = new JsonObject();
-        first.addProperty("rel", "first");
-        first.addProperty("resource", getUserFirstPageLink(user));
-
-        JsonObject last = new JsonObject();
-        last.addProperty("rel", "last");
-        last.addProperty("resource", getUserLastPageLink(user));
 
         JsonArray links = new JsonArray();
         links.add(first);
@@ -348,19 +265,19 @@ public class PostContainer {
 
         JsonObject first = new JsonObject();
         int firstPage = getFirstPage();
-        first.addProperty("rel", "first");
+        first.addProperty("rel", "first_page");
         first.addProperty("resource", getFirstPageLink());
 
         JsonObject last = new JsonObject();
         int lastPage = getLastPage();
-        last.addProperty("rel", "last");
+        last.addProperty("rel", "last_page");
         last.addProperty("resource", getLastPageLink());
 
         JsonObject prev = new JsonObject();
-        prev.addProperty("rel", "prev");
+        prev.addProperty("rel", "prev_page");
 
         JsonObject next = new JsonObject();
-        next.addProperty("rel", "next");
+        next.addProperty("rel", "next_page");
 
         if (page <= firstPage || lastPage == 1) {
             prev.addProperty("resource", "");
@@ -371,43 +288,6 @@ public class PostContainer {
             next.addProperty("resource", "");
         } else {
             next.addProperty("resource", getPageLink(page + 1));
-        }
-
-        links.add(first);
-        links.add(last);
-        links.add(prev);
-        links.add(next);
-        return links;
-    }
-
-    public JsonArray getUserPageLinks(int page, User user) {
-        JsonArray links = new JsonArray();
-
-        JsonObject first = new JsonObject();
-        int firstPage = getFirstPage();
-        first.addProperty("rel", "first");
-        first.addProperty("resource", getUserFirstPageLink(user));
-
-        JsonObject last = new JsonObject();
-        int lastPage = getLastPage();
-        last.addProperty("rel", "last");
-        last.addProperty("resource", getUserLastPageLink(user));
-
-        JsonObject prev = new JsonObject();
-        prev.addProperty("rel", "prev");
-
-        JsonObject next = new JsonObject();
-        next.addProperty("rel", "next");
-
-        if (page <= firstPage || lastPage == 1) {
-            prev.addProperty("resource", "");
-        } else {
-            prev.addProperty("resource", getUserPageLink(page - 1, user));
-        }
-        if (page >= lastPage || firstPage == lastPage) {
-            next.addProperty("resource", "");
-        } else {
-            next.addProperty("resource", getUserPageLink(page + 1, user));
         }
 
         links.add(first);

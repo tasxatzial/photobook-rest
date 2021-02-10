@@ -14,22 +14,25 @@ public class UserContainer {
     private final Map<String, User> _usernames = new HashMap<>();
     private final List<User> _users = new ArrayList<>();
     private final Set<String> _emails = new HashSet<>();
-    private static final String[] _userPropNames;
+    private static final String[] _userProps;
     private final Countries _countries = new Countries();
     private final int _usersPerPage = 2;
+    private String _link;
 
     static {
-        _userPropNames = new String[] {
+        _userProps = new String[] {
                 "username", "password", "passwordConfirm", "email",
                 "firstName", "lastName", "birthDate", "country", "city",
                 "address", "job", "gender", "interests", "about"
         };
     }
 
-    public UserContainer() throws IOException { }
+    public UserContainer() throws IOException {
+        _link = "/users";
+    }
 
     public void addUser(User user) {
-        user.setLink("users/" + user.getUsername());
+        user.setLink(_link + "/" + user.getUsername());
         user.init();
         _usernames.put(user.getUsername(), user);
         _users.add(user);
@@ -55,14 +58,14 @@ public class UserContainer {
     public JsonObject checkUserFields(JsonObject requestJson, String usernameParameter, boolean userUpdate) {
         JsonObject invalidRequestProps = new JsonObject();
 
-        for (int i = 0; i < _userPropNames.length; i++) {
-            JsonElement requestProp = requestJson.get(_userPropNames[i]);
+        for (int i = 0; i < _userProps.length; i++) {
+            JsonElement requestProp = requestJson.get(_userProps[i]);
             if (requestProp == null) {
-                invalidRequestProps.addProperty(_userPropNames[i], "MISSING_VALUE");
+                invalidRequestProps.addProperty(_userProps[i], "MISSING_VALUE");
                 continue;
             }
             String parsedRequestProp = parseRequestProp(requestProp);
-            switch (_userPropNames[i]) {
+            switch (_userProps[i]) {
                 case "username":
                     if (userUpdate) {
                         String requestUsername = parseRequestProp(requestJson.get("username")).trim().toLowerCase();
@@ -129,18 +132,18 @@ public class UserContainer {
                 case "gender":
                     parsedRequestProp = parsedRequestProp.trim();
                     if (!parsedRequestProp.matches(getRegexPattern("gender"))) {
-                        invalidRequestProps.addProperty(_userPropNames[i], "INVALID_PATTERN");
+                        invalidRequestProps.addProperty(_userProps[i], "INVALID_PATTERN");
                     }
                     break;
                 case "country":
                     parsedRequestProp = parsedRequestProp.trim().toUpperCase();
                     if (!_countries.containsCountry(parsedRequestProp)) {
-                        invalidRequestProps.addProperty(_userPropNames[i], "INVALID_CODE");
+                        invalidRequestProps.addProperty(_userProps[i], "INVALID_CODE");
                     }
                     break;
                 default:
-                    if (!parsedRequestProp.matches(getRegexPattern(_userPropNames[i]))) {
-                        invalidRequestProps.addProperty(_userPropNames[i], "INVALID_PATTERN");
+                    if (!parsedRequestProp.matches(getRegexPattern(_userProps[i]))) {
+                        invalidRequestProps.addProperty(_userProps[i], "INVALID_PATTERN");
                     }
                     break;
             }
@@ -161,6 +164,10 @@ public class UserContainer {
         return _users.size() / _usersPerPage + 1;
     }
 
+    public String getLink() {
+        return _link;
+    }
+
     private String getFirstPageLink() {
         return getPageLink(getFirstPage());
     }
@@ -170,7 +177,7 @@ public class UserContainer {
     }
 
     private String getPageLink(int page) {
-        return "users?page=" + page;
+        return _link + "?page=" + page;
     }
 
     public static JsonArray getLinks(User user) {
@@ -186,6 +193,24 @@ public class UserContainer {
         links.add(self);
         links.add(posts);
         return links;
+    }
+
+    public static JsonObject getData(User user) {
+        JsonObject data = new JsonObject();
+        data.addProperty("username", user.getUsername());
+        data.addProperty("email", user.getEmail());
+        data.addProperty("password", user.getPassword());
+        data.addProperty("firstName", user.getFirstName());
+        data.addProperty("lastName", user.getLastName());
+        data.addProperty("job", user.getJob());
+        data.addProperty("city", user.getCity());
+        data.addProperty("birthDate", user.getBirthDate());
+        data.addProperty("country", user.getCountry());
+        data.addProperty("interests", user.getInterests());
+        data.addProperty("about", user.getAbout());
+        data.addProperty("address", user.getAddress());
+        data.addProperty("gender", String.valueOf(user.getGender()));
+        return data;
     }
 
     private JsonArray getUsers(int start, int end) {

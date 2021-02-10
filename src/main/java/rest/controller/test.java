@@ -30,6 +30,10 @@ public class test {
     public static void main(String[] args) {
         port(5677);
 
+        get("/", (request, response) -> {
+            return null;
+        });
+
         get("/users", (request, response) -> {
             response.type("application/json");
             String pageParam = request.queryParams("page");
@@ -151,8 +155,8 @@ public class test {
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                 "",
-                                user.getLinks(),
-                                user.getData()));
+                                UserContainer.getLinks(user),
+                                UserContainer.getData(user)));
             }
         });
 
@@ -216,8 +220,9 @@ public class test {
                 JsonObject invalidRequestProps = userContainer.checkUserFields(jsonRequest, username, true);
                 if (invalidRequestProps.size() == 0) {
                     response.status(200);
-                    User user = new Gson().fromJson(request.body(), User.class);
-                    userContainer.addUser(user);
+                    User newUser = new Gson().fromJson(request.body(), User.class);
+                    User user = userContainer.getUser(username);
+                    user.updateUser(newUser);
                     return new Gson().
                             toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                     "",
@@ -277,7 +282,7 @@ public class test {
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                 "",
-                                new JsonArray(),
+                                postContainer.getPageDefaultLinks(),
                                 postContainer.getPosts()));
             }
         });
@@ -352,8 +357,8 @@ public class test {
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                 "",
-                                PostContainer.getUserPostLinks(post),
-                                new Gson().toJsonTree(post)));
+                                PostContainer.getUserLinks(post),
+                                PostContainer.getData(post)));
             }
         });
 
@@ -423,7 +428,7 @@ public class test {
                                     "INVALID_REQUEST",
                                     new JsonObject()));
                 }
-                if (page < postContainer.getUserFirstPage() || page > postContainer.getUserLastPage(user)) {
+                if (page < postContainer.getUserFirstPage(user) || page > postContainer.getUserLastPage(user)) {
                     response.status(400);
                     return new Gson()
                             .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.ERROR,
@@ -443,7 +448,7 @@ public class test {
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                 "",
-                                new JsonArray(),
+                                postContainer.getUserPageDefaultLinks(user),
                                 postContainer.getUserPosts(user)));
             }
         });
@@ -477,8 +482,8 @@ public class test {
                     response.status(201);
                     Post post = new Gson().fromJson(request.body(), Post.class);
                     post.setUsername(username);
-                    postContainer.addPost(post);
-                    response.header("Location", "http://127.0.0.1:5677/" + PostContainer.getUserPostLinks(post));
+                    postContainer.addPost(post, user);
+                    response.header("Location", "http://127.0.0.1:5677/" + post.getLink());
                     return new Gson().
                             toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                     "",
@@ -566,8 +571,8 @@ public class test {
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                 "",
-                                PostContainer.getPostIDLinks(post),
-                                new Gson().toJsonTree(post)));
+                                PostContainer.getIDLink(post),
+                                PostContainer.getData(post)));
             }
         });
 
@@ -619,7 +624,7 @@ public class test {
                                 new JsonObject()));
             } else {
                 response.status(200);
-                postContainer.deletePost(post);
+                postContainer.deletePost(post, user);
                 return new Gson()
                         .toJson(new ApiResponse(ApiResponse.ApiResponseEnum.SUCCESS,
                                 "",
